@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String?  // For simplicity, or use Auth provider ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts     Account[]
+  transactions Transaction[]
+  savings      Saving[]
+  debts        Debt[]
+}
+
+model Account {
+  id             String        @id @default(uuid())
+  userId         String
+  name           String
+  type           AccountType   @default(WALLET)
+  currency       String        @default("VND")
+  balance        Decimal       @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user           User          @relation(fields: [userId], references: [id])
+  transactions   Transaction[]
+  savingSources  Saving[]      @relation("SavingSource")
+  debtSources    Debt[]        @relation("DebtSource")
+}
+
+enum AccountType {
+  WALLET
+  BANK
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  userId      String
+  accountId   String
+  amount      Decimal
+  type        TransactionType
+  category    String?
+  note        String?
+  date        DateTime        @default(now())
+  isHidden    Boolean         @default(false) // Privacy feature
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user        User            @relation(fields: [userId], references: [id])
+  account     Account         @relation(fields: [accountId], references: [id])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Saving {
+  id             String    @id @default(uuid())
+  userId         String
+  sourceAccountId String?  // Account to deduct from
+  bankName       String
+  amount         Decimal
+  interestRate   Decimal   // Percentage
+  startDate      DateTime  @default(now())
+  endDate        DateTime? // Term end
+  isSettled      Boolean   @default(false)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id])
+  sourceAccount  Account?  @relation("SavingSource", fields: [sourceAccountId], references: [id])
+}
+
+model Debt {
+  id             String    @id @default(uuid())
+  userId         String
+  sourceAccountId String?  // Account used to pay debt
+  name           String
+  amount         Decimal
+  isPaid         Boolean   @default(false)
+  dueDate        DateTime?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id])
+  sourceAccount  Account?  @relation("DebtSource", fields: [sourceAccountId], references: [id])
+}

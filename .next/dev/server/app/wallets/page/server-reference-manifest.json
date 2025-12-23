@@ -1,0 +1,35 @@
+{
+  "node": {
+    "0006a7ea2b53118f7a7709a5e5557c258a6e4ec778": {
+      "workers": {
+        "app/wallets/page": {
+          "moduleId": "[project]/.next-internal/server/app/wallets/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/wallets.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getWallets",
+          "filename": "app/actions/wallets.ts"
+        }
+      },
+      "layer": {
+        "app/wallets/page": "rsc"
+      },
+      "exportedName": "getWallets",
+      "filename": "app/actions/wallets.ts"
+    },
+    "4091b52537d50ebc89f3b907ddaf8b7cf4bf459d72": {
+      "workers": {
+        "app/wallets/page": {
+          "moduleId": "[project]/.next-internal/server/app/wallets/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/wallets.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createWallet",
+          "filename": "app/actions/wallets.ts"
+        }
+      },
+      "layer": {
+        "app/wallets/page": "rsc"
+      },
+      "exportedName": "createWallet",
+      "filename": "app/actions/wallets.ts"
+    }
+  },
+  "edge": {}
+}

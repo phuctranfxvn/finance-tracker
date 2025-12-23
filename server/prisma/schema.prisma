@@ -1,0 +1,143 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  name      String?
+  password  String?  // For simplicity, or use Auth provider ID
+  preferences Json?  // For user settings like quick amounts
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts     Account[]
+  transactions Transaction[]
+  savings      Saving[]
+  debts        Debt[]
+  categories   Category[]
+  passkeys     Passkey[]
+}
+
+model Account {
+  id             String        @id @default(uuid())
+  userId         String
+  name           String
+  type           AccountType   @default(WALLET)
+  bankName       String?       // New field for storing selected bank code/name
+  currency       String        @default("VND")
+  balance        Decimal       @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user           User          @relation(fields: [userId], references: [id])
+  transactions   Transaction[]
+  savingSources  Saving[]      @relation("SavingSource")
+  debtSources    Debt[]        @relation("DebtSource")
+}
+
+enum AccountType {
+  WALLET
+  BANK
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  userId      String
+  accountId   String
+  amount      Decimal
+  type        TransactionType
+  category    String?
+  note        String?
+  date        DateTime        @default(now())
+  isPrivate   Boolean         @default(false) // Privacy feature
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user        User            @relation(fields: [userId], references: [id])
+  account     Account         @relation(fields: [accountId], references: [id])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Saving {
+  id             String    @id @default(uuid())
+  userId         String
+  sourceAccountId String?  // Account to deduct from
+  bankName       String
+  amount         Decimal
+  interestRate   Decimal   // Percentage
+  startDate      DateTime  @default(now())
+  endDate        DateTime? // Term end
+  isSettled      Boolean   @default(false)
+  settlementTransactionId String? // ID of the transaction created when settled
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id])
+  sourceAccount  Account?  @relation("SavingSource", fields: [sourceAccountId], references: [id])
+}
+
+model Debt {
+  id             String    @id @default(uuid())
+  userId         String
+  sourceAccountId String?  // Account used to pay debt
+  name           String
+  amount         Decimal
+  remainingAmount Decimal   @default(0)
+  isPaid         Boolean   @default(false)
+  dueDate        DateTime?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id])
+  sourceAccount  Account?  @relation("DebtSource", fields: [sourceAccountId], references: [id])
+}
+
+model Category {
+  id        String          @id @default(uuid())
+  userId    String
+  name      String
+  type      TransactionType // INCOME or EXPENSE
+  icon      String          // Emoji or icon name
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user      User            @relation(fields: [userId], references: [id])
+
+  @@unique([userId, name, type]) // Prevent duplicate category names per type for a user
+}
+
+model Passkey {
+  id           String   @id @default(uuid())
+  userId       String
+  credentialID String   @unique
+  publicKey    String
+  counter      BigInt
+  transports   String?  // stored as comma-separated string or specific type
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model AuthChallenge {
+  id        String   @id @default(uuid())
+  challenge String
+  expiresAt DateTime
+  userId    String?  // Optional, if known (registration)
+}

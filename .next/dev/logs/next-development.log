@@ -1,0 +1,14 @@
+[00:00:00.712] Server  LOG     ✓ Ready in 491ms
+[00:00:04.262] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:46.122] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.207] Server  ERROR   ⨯ "unhandledRejection:" Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.209] Server  ERROR   ⨯ "unhandledRejection: " Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.238] Server  ERROR   ⨯ PageNotFoundError: Cannot find module for page: route not found /_not-found/page
+[00:01:46.429] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.431] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.435] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.436] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.440] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.441] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.444] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'
+[00:01:46.447] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/felix/Documents/working/personal/finance-tracker/app'

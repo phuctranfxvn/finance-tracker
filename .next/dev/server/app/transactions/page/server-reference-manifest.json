@@ -1,0 +1,65 @@
+{
+  "node": {
+    "00c2d8a3ee975fbadaff6c82463f7a9fcd4b22372f": {
+      "workers": {
+        "app/transactions/page": {
+          "moduleId": "[project]/.next-internal/server/app/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/transactions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/wallets.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getTransactions",
+          "filename": "app/actions/transactions.ts"
+        }
+      },
+      "layer": {
+        "app/transactions/page": "rsc"
+      },
+      "exportedName": "getTransactions",
+      "filename": "app/actions/transactions.ts"
+    },
+    "40d664c3a880bfd3a1742d8492f966625b078eab86": {
+      "workers": {
+        "app/transactions/page": {
+          "moduleId": "[project]/.next-internal/server/app/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/transactions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/wallets.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createTransaction",
+          "filename": "app/actions/transactions.ts"
+        }
+      },
+      "layer": {
+        "app/transactions/page": "action-browser"
+      },
+      "exportedName": "createTransaction",
+      "filename": "app/actions/transactions.ts"
+    },
+    "0006a7ea2b53118f7a7709a5e5557c258a6e4ec778": {
+      "workers": {
+        "app/transactions/page": {
+          "moduleId": "[project]/.next-internal/server/app/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/transactions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/wallets.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getWallets",
+          "filename": "app/actions/wallets.ts"
+        }
+      },
+      "layer": {
+        "app/transactions/page": "rsc"
+      },
+      "exportedName": "getWallets",
+      "filename": "app/actions/wallets.ts"
+    },
+    "4091b52537d50ebc89f3b907ddaf8b7cf4bf459d72": {
+      "workers": {
+        "app/transactions/page": {
+          "moduleId": "[project]/.next-internal/server/app/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/transactions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/wallets.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createWallet",
+          "filename": "app/actions/wallets.ts"
+        }
+      },
+      "layer": {
+        "app/transactions/page": "rsc"
+      },
+      "exportedName": "createWallet",
+      "filename": "app/actions/wallets.ts"
+    }
+  },
+  "edge": {}
+}

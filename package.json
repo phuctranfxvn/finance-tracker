@@ -1,0 +1,15 @@
+{
+  "name": "finance-tracker-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "start": "npx concurrently \"npm run start --prefix server\" \"npm run start --prefix client\"",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "prisma:generate": "npm run generate --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
