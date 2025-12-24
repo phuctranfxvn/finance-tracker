@@ -86,4 +86,37 @@ router.put('/wallets/:id', async (req, res) => {
     }
 });
 
+// Delete Wallet
+router.delete('/wallets/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user!.userId;
+
+        // Check for related transactions
+        const transactionCount = await prisma.transaction.count({
+            where: { accountId: id }
+        });
+
+        if (transactionCount > 0) {
+            return res.status(400).json({
+                error: 'Cannot delete wallet with existing transactions. Please delete the transactions first.'
+            });
+        }
+
+        // Check for ownership and delete
+        const result = await prisma.account.deleteMany({
+            where: { id, userId }
+        });
+
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Wallet not found or unauthorized' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('[DEBUG] Delete wallet error:', error);
+        res.status(500).json({ error: 'Failed to delete wallet' });
+    }
+});
+
 export const walletsRouter = router;

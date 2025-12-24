@@ -12,11 +12,17 @@ router.get('/transactions', async (req, res) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
+        const accountId = req.query.accountId as string;
         const skip = (page - 1) * limit;
+
+        const whereClause: any = { userId: req.user!.userId };
+        if (accountId) {
+            whereClause.accountId = accountId;
+        }
 
         const [transactions, total] = await prisma.$transaction([
             prisma.transaction.findMany({
-                where: { userId: req.user!.userId },
+                where: whereClause,
                 include: {
                     account: {
                         select: { name: true },
@@ -27,7 +33,7 @@ router.get('/transactions', async (req, res) => {
                 take: limit,
             }),
             prisma.transaction.count({
-                where: { userId: req.user!.userId },
+                where: whereClause,
             }),
         ]);
 

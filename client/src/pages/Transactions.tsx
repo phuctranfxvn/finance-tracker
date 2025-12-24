@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Search, Filter, Plus, TrendingUp, TrendingDown, Eye, EyeOff } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -28,6 +29,10 @@ export default function Transactions() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Filter params
+    const [searchParams] = useSearchParams();
+    const accountId = searchParams.get('accountId');
+
     // Privacy State
     const [showPrivate, setShowPrivate] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -40,9 +45,10 @@ export default function Transactions() {
     const fetchTransactions = async (page = 1) => {
         setLoading(true);
         try {
-            const res = await axios.get(`/api/transactions`, {
-                params: { page, limit }
-            });
+            const params: any = { page, limit };
+            if (accountId) params.accountId = accountId;
+
+            const res = await axios.get(`/api/transactions`, { params });
             // Handle both old array format (fallback) and new object format
             if (Array.isArray(res.data)) {
                 setTransactions(res.data);
@@ -59,7 +65,7 @@ export default function Transactions() {
 
     useEffect(() => {
         fetchTransactions(currentPage);
-    }, [currentPage]);
+    }, [currentPage, accountId]);
 
     const togglePrivacy = () => {
         if (showPrivate) {

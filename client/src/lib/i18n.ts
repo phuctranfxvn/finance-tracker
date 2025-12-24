@@ -58,6 +58,10 @@ export const translations = {
         newBalance: "New Balance Amount",
         adjustment: "Balance Adjustment",
         editWallet: "Edit Wallet",
+        deleteWallet: "Delete Wallet",
+        viewTransactions: "View Transactions",
+        confirmDeleteWallet: "Are you sure you want to delete this wallet? This action cannot be undone.",
+        cannotDeleteWallet: "Cannot delete wallet with existing transactions. Please delete all transactions associated with this wallet first.",
 
         // Transactions
         trackActivity: "Track your financial activity",
@@ -169,6 +173,10 @@ export const translations = {
         newBalance: "Số dư thực tế mới",
         adjustment: "Điều chỉnh số dư",
         editWallet: "Chỉnh sửa ví",
+        deleteWallet: "Xóa ví",
+        viewTransactions: "Xem giao dịch",
+        confirmDeleteWallet: "Bạn có chắc chắn muốn xóa ví này? Hành động này không thể hoàn tác.",
+        cannotDeleteWallet: "Không thể xóa ví đã có giao dịch. Vui lòng xóa hết giao dịch liên quan trước.",
 
         // Transactions
         trackActivity: "Theo dõi hoạt động tài chính",

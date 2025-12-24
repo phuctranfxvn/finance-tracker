@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
-import { Plus, Wallet as WalletIcon, CreditCard, MoreHorizontal, Star, PenLine, RotateCcw, Landmark } from "lucide-react";
+import { Plus, Wallet as WalletIcon, Star, PenLine, RotateCcw, Landmark, Trash2, History } from "lucide-react";
 import { cn } from "../lib/utils";
 
 interface Wallet {
@@ -35,6 +36,7 @@ const VIETNAM_BANKS = [
 
 export default function Wallets() {
     const { user, login, token } = useAuth(); // Use Auth Context
+    const navigate = useNavigate();
     const { t } = useLanguage();
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [loading, setLoading] = useState(true);
@@ -177,6 +179,26 @@ export default function Wallets() {
         }
     };
 
+    const handleViewTransactions = (walletId: string) => {
+        navigate(`/transactions?accountId=${walletId}`);
+    };
+
+    const handleDeleteWallet = async (walletId: string) => {
+        if (!confirm(t('confirmDeleteWallet'))) return;
+
+        try {
+            await axios.delete(`/api/wallets/${walletId}`);
+            fetchWallets();
+        } catch (error: any) {
+            console.error("Failed to delete wallet", error);
+            if (error.response?.data?.error) {
+                alert(error.response.data.error);
+            } else {
+                alert("Failed to delete wallet");
+            }
+        }
+    };
+
     return (
         <div className="flex flex-col min-h-full gap-8">
             {/* Header */}
@@ -250,10 +272,23 @@ export default function Wallets() {
                                     >
                                         <RotateCcw size={18} />
                                     </button>
-                                    <button className={cn(
-                                        "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-400"
-                                    )}>
-                                        <MoreHorizontal size={20} />
+                                    <button
+                                        onClick={() => handleViewTransactions(wallet.id)}
+                                        className={cn(
+                                            "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-300"
+                                        )}
+                                        title={t('viewTransactions')}
+                                    >
+                                        <History size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteWallet(wallet.id)}
+                                        className={cn(
+                                            "p-2 rounded-full transition-colors hover:bg-red-50 text-gray-300 hover:text-red-500"
+                                        )}
+                                        title={t('deleteWallet')}
+                                    >
+                                        <Trash2 size={18} />
                                     </button>
                                 </div>
                             </div>
