@@ -6,6 +6,7 @@ import axios from "axios";
 import CategoryManager from "../components/CategoryManager";
 import { startRegistration } from '@simplewebauthn/browser';
 
+
 export default function Settings() {
     const { user, login, token, logout } = useAuth();
     const { t, language, setLanguage } = useLanguage();
@@ -340,6 +341,8 @@ export default function Settings() {
 
             {/* Category Manager */}
             <hr className="border-gray-200" />
+
+
 
             <div>
                 <h2 className="text-xl font-bold mb-6">{t('manageCategories')}</h2>

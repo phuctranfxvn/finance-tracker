@@ -18,7 +18,7 @@ export default defineConfig({
     ],
     proxy: {
       '/api': {
-        target: 'https://fin-api.tranphuc.site',
+        target: 'http://localhost:4000',
         changeOrigin: true,
         secure: false,
       }

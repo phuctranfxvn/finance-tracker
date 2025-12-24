@@ -57,6 +57,7 @@ export const translations = {
         adjustBalance: "Adjust Balance",
         newBalance: "New Balance Amount",
         adjustment: "Balance Adjustment",
+        editWallet: "Edit Wallet",
 
         // Transactions
         trackActivity: "Track your financial activity",
@@ -95,6 +96,8 @@ export const translations = {
         savedSuccess: "Saved successfully!",
         unsettledSuccess: "Unsettled successfully!",
         failed: "Operation failed",
+        category: "Category",
+        uncategorized: "Uncategorized",
 
         // Debts
         manageDebts: "Manage your loans and repayments",
@@ -165,6 +168,7 @@ export const translations = {
         adjustBalance: "Điều chỉnh số dư",
         newBalance: "Số dư thực tế mới",
         adjustment: "Điều chỉnh số dư",
+        editWallet: "Chỉnh sửa ví",
 
         // Transactions
         trackActivity: "Theo dõi hoạt động tài chính",
@@ -203,6 +207,8 @@ export const translations = {
         savedSuccess: "Lưu thành công!",
         unsettledSuccess: "Hoàn tác thành công!",
         failed: "Thao tác thất bại",
+        category: "Danh mục",
+        uncategorized: "Chưa phân loại",
 
         // Debts
         manageDebts: "Quản lý khoản vay và nợ",

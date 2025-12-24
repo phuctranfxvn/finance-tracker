@@ -15,6 +15,7 @@ router.get('/savings', async (req, res) => {
                 sourceAccount: {
                     select: { name: true },
                 },
+                category: true,
             },
             orderBy: { createdAt: 'desc' },
         });
@@ -27,7 +28,7 @@ router.get('/savings', async (req, res) => {
 // Create Saving Goal / Deposit
 router.post('/savings', async (req, res) => {
     try {
-        const { bankName, amount, interestRate, startDate, endDate, sourceAccountId } = req.body;
+        const { bankName, amount, interestRate, startDate, endDate, sourceAccountId, savingCategoryId } = req.body;
         const userId = req.user!.userId;
 
         // Transaction to deduct from source account and create saving
@@ -41,6 +42,7 @@ router.post('/savings', async (req, res) => {
                     startDate: startDate ? new Date(startDate) : new Date(),
                     endDate: endDate ? new Date(endDate) : null,
                     sourceAccountId,
+                    savingCategoryId: savingCategoryId || undefined,
                     userId,
                     isSettled: false
                 }
@@ -152,7 +154,7 @@ router.post('/savings/:id/settle', async (req, res) => {
 router.put('/savings/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { bankName, amount, interestRate, startDate, endDate } = req.body;
+        const { bankName, amount, interestRate, startDate, endDate, savingCategoryId } = req.body;
 
         const updated = await prisma.saving.update({
             where: { id },
@@ -161,7 +163,8 @@ router.put('/savings/:id', async (req, res) => {
                 amount,
                 interestRate,
                 startDate: startDate ? new Date(startDate) : undefined,
-                endDate: endDate ? new Date(endDate) : null // Allow clearing end date
+                endDate: endDate ? new Date(endDate) : null, // Allow clearing end date
+                savingCategoryId: savingCategoryId || undefined
             }
         });
 

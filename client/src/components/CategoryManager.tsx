@@ -11,22 +11,28 @@ interface Category {
 
 export default function CategoryManager() {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [savingCategories, setSavingCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [name, setName] = useState("");
-    const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE');
+    const [type, setType] = useState<'INCOME' | 'EXPENSE' | 'SAVING'>('EXPENSE');
     const [icon, setIcon] = useState("🍔"); // Default icon
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const emojis = ["🍔", "🚕", "🛍️", "☕", "🧾", "🎬", "💊", "🏠", "✈️", "💰", "🏦", "👶", "🎁", "📚", "🔧", "💻"];
 
     useEffect(() => {
-        fetchCategories();
+        fetchAllCategories();
     }, []);
 
-    const fetchCategories = async () => {
+    const fetchAllCategories = async () => {
+        setLoading(true);
         try {
-            const res = await axios.get("/api/categories");
-            setCategories(res.data);
+            const [catRes, saveRes] = await Promise.all([
+                axios.get("/api/categories"),
+                axios.get("/api/saving-categories")
+            ]);
+            setCategories(catRes.data);
+            setSavingCategories(Array.isArray(saveRes.data) ? saveRes.data : []);
         } catch (error) {
             console.error("Failed to fetch categories", error);
         } finally {
@@ -40,12 +46,13 @@ export default function CategoryManager() {
 
         setIsSubmitting(true);
         try {
-            const res = await axios.post("/api/categories", {
-                name,
-                type,
-                icon
-            });
-            setCategories([...categories, res.data]);
+            if (type === 'SAVING') {
+                const res = await axios.post("/api/saving-categories", { name, icon });
+                setSavingCategories([res.data, ...savingCategories]);
+            } else {
+                const res = await axios.post("/api/categories", { name, type, icon });
+                setCategories([...categories, res.data]);
+            }
             setName("");
             setIcon("🍔");
         } catch (error) {
@@ -56,12 +63,17 @@ export default function CategoryManager() {
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id: string, isSaving: boolean = false) => {
         if (!confirm("Are you sure you want to delete this category?")) return;
 
         try {
-            await axios.delete(`/api/categories/${id}`);
-            setCategories(categories.filter(c => c.id !== id));
+            if (isSaving) {
+                await axios.delete(`/api/saving-categories/${id}`);
+                setSavingCategories(savingCategories.filter(c => c.id !== id));
+            } else {
+                await axios.delete(`/api/categories/${id}`);
+                setCategories(categories.filter(c => c.id !== id));
+            }
         } catch (error) {
             console.error("Failed to delete category", error);
             alert("Failed to delete category");
@@ -94,6 +106,13 @@ export default function CategoryManager() {
                                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${type === 'INCOME' ? 'bg-white shadow text-green-500' : 'text-gray-500 hover:bg-gray-200'}`}
                                     >
                                         Income
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setType('SAVING')}
+                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${type === 'SAVING' ? 'bg-white shadow text-pink-500' : 'text-gray-500 hover:bg-gray-200'}`}
+                                    >
+                                        Saving
                                     </button>
                                 </div>
                             </div>
@@ -191,6 +210,34 @@ export default function CategoryManager() {
                             {categories.filter(c => c.type === 'INCOME').length === 0 && (
                                 <div className="col-span-full text-center py-8 text-gray-400 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
                                     No income categories yet
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Saving Categories */}
+                    <div>
+                        <h3 className="font-bold text-[var(--text-secondary)] uppercase tracking-wider text-xs mb-4">Saving Categories</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {savingCategories.map(cat => (
+                                <div key={cat.id} className="bg-white p-4 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-pink-50 text-2xl flex items-center justify-center">
+                                            {cat.icon || "💰"}
+                                        </div>
+                                        <span className="font-bold text-[var(--text-primary)]">{cat.name}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDelete(cat.id, true)}
+                                        className="w-8 h-8 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+                            {savingCategories.length === 0 && (
+                                <div className="col-span-full text-center py-8 text-gray-400 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
+                                    No saving categories yet
                                 </div>
                             )}
                         </div>

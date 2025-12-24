@@ -47,6 +47,8 @@ import { debtsRouter } from './routes/debts';
 import { categoriesRouter } from './routes/categories';
 import { authRouter } from './routes/auth';
 
+import { savingCategoriesRouter } from './routes/savingCategories';
+
 app.use('/api', authRouter);
 app.use('/api', walletsRouter);
 app.use('/api', transactionsRouter);
@@ -54,6 +56,7 @@ app.use('/api', dashboardRouter);
 app.use('/api', savingsRouter);
 app.use('/api', debtsRouter);
 app.use('/api', categoriesRouter);
+app.use('/api', savingCategoriesRouter);
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Finance Tracker API is running');
