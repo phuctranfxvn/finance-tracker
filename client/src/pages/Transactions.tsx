@@ -152,26 +152,26 @@ export default function Transactions() {
             </div>
 
             {/* Transactions List */}
-            <div className="bg-white rounded-[2rem] p-6 shadow-sm">
+            <div className="bg-white rounded-[2rem] p-3 sm:p-6 shadow-sm">
                 {loading ? (
                     <div className="text-center text-gray-400 py-10">Loading transactions...</div>
                 ) : filteredTransactions.length === 0 ? (
                     <div className="text-center text-gray-400 py-10">No transactions found</div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-2 sm:space-y-4">
                         {filteredTransactions.map((tx) => {
                             const isMasked = tx.isPrivate && !showPrivate;
 
                             return (
-                                <div key={tx.id} className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-colors border border-transparent hover:border-gray-100 group">
+                                <div key={tx.id} className="relative flex items-start gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-gray-50 rounded-2xl transition-colors border border-transparent hover:border-gray-100 group">
                                     <div className={cn(
-                                        "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
+                                        "w-12 h-12 rounded-full flex items-center justify-center shrink-0 mt-1",
                                         tx.type === 'INCOME' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
                                     )}>
                                         {tx.type === 'INCOME' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                                     </div>
 
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0 pt-0.5 pr-8 sm:pr-0">
                                         <div className="font-bold text-[var(--text-primary)] break-words leading-tight mb-1">{tx.category}</div>
                                         <div className="text-xs text-[var(--text-secondary)] flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-0.5">
                                             <span className="shrink-0 font-medium">{new Date(tx.date).toLocaleDateString()}</span>
@@ -181,28 +181,28 @@ export default function Transactions() {
                                         {tx.note && <div className="text-xs text-gray-400 mt-1 italic break-words">{tx.note}</div>}
                                     </div>
 
-                                    <div className="text-right flex items-center gap-2 shrink-0">
-                                        <div className={cn(
-                                            "text-lg font-bold flex items-center justify-end whitespace-nowrap",
-                                            tx.type === 'INCOME' ? "text-green-600" : "text-red-600"
-                                        )}>
-                                            {isMasked ? "******" : (
-                                                <>
-                                                    {tx.type === 'INCOME' ? '+' : '-'}{Number(tx.amount).toLocaleString()}
-                                                </>
-                                            )}
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                setEditingTransaction(tx);
-                                                setIsModalOpen(true);
-                                            }}
-                                            className="p-2 rounded-full hover:bg-gray-100 text-gray-300 hover:text-gray-600 transition-colors opacity-0 group-hover:opacity-100"
-                                            title={t('editTransaction')}
-                                        >
-                                            <PenLine size={18} />
-                                        </button>
+                                    <div className={cn(
+                                        "text-lg font-bold flex items-center justify-end whitespace-nowrap pt-0.5 shrink-0",
+                                        tx.type === 'INCOME' ? "text-green-600" : "text-red-600"
+                                    )}>
+                                        {isMasked ? "******" : (
+                                            <>
+                                                {tx.type === 'INCOME' ? '+' : '-'}{Number(tx.amount).toLocaleString()}
+                                            </>
+                                        )}
                                     </div>
+
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingTransaction(tx);
+                                            setIsModalOpen(true);
+                                        }}
+                                        className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-gray-100 text-gray-300 hover:text-gray-600 transition-colors opacity-0 group-hover:opacity-100"
+                                        title={t('editTransaction')}
+                                    >
+                                        <PenLine size={16} />
+                                    </button>
                                 </div>
                             );
                         })}
