@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Search, Filter, Plus, TrendingUp, TrendingDown, Eye, EyeOff } from "lucide-react";
+import { Search, Filter, Plus, TrendingUp, TrendingDown, Eye, EyeOff, PenLine } from "lucide-react";
 import { cn } from "../lib/utils";
 import TransactionModal from "../components/TransactionModal";
 import PasswordModal from "../components/PasswordModal";
@@ -16,6 +16,7 @@ interface Transaction {
     note?: string;
     date: string;
     isPrivate: boolean;
+    accountId: string;
     account: {
         name: string;
     };
@@ -28,6 +29,7 @@ export default function Transactions() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
     // Filter params
     const [searchParams] = useSearchParams();
@@ -180,7 +182,7 @@ export default function Transactions() {
                                         </div>
                                     </div>
 
-                                    <div className="text-right">
+                                    <div className="text-right flex items-center gap-4">
                                         <div className={cn(
                                             "text-lg font-bold flex items-center justify-end gap-2",
                                             tx.type === 'INCOME' ? "text-green-600" : "text-red-600"
@@ -191,6 +193,16 @@ export default function Transactions() {
                                                 </>
                                             )}
                                         </div>
+                                        <button
+                                            onClick={() => {
+                                                setEditingTransaction(tx);
+                                                setIsModalOpen(true);
+                                            }}
+                                            className="p-2 rounded-full hover:bg-gray-100 text-gray-300 hover:text-gray-600 transition-colors opacity-0 group-hover:opacity-100"
+                                            title={t('editTransaction')}
+                                        >
+                                            <PenLine size={18} />
+                                        </button>
                                     </div>
                                 </div>
                             );
@@ -222,7 +234,15 @@ export default function Transactions() {
                 )}
             </div>
 
-            <TransactionModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); fetchTransactions(currentPage); }} />
+            <TransactionModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingTransaction(null);
+                    fetchTransactions(currentPage);
+                }}
+                transactionToEdit={editingTransaction}
+            />
         </div>
     );
 }

@@ -52,6 +52,75 @@ router.get('/transactions', async (req, res) => {
     }
 });
 
+// Update Transaction
+router.put('/transactions/:id', async (req, res) => {
+    const { id } = req.params;
+    const { amount, type, category, date, accountId, note, isPrivate } = req.body;
+    const userId = req.user!.userId;
+
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Get existing transaction
+            const existingTx = await tx.transaction.findUnique({
+                where: { id, userId },
+                include: { account: true }
+            });
+
+            if (!existingTx) {
+                throw new Error("Transaction not found");
+            }
+
+            // 2. Revert old balance from old account
+            const oldBalanceChange = existingTx.type === 'INCOME' ? Number(existingTx.amount) : -Number(existingTx.amount);
+            // We need to SUBTRACT the old change to key it back to original state
+            // If it was Income (+100), we subtract 100. If Expense (-100), we add 100 (subtract -100).
+
+            await tx.account.update({
+                where: { id: existingTx.accountId },
+                data: {
+                    balance: {
+                        decrement: oldBalanceChange
+                    }
+                }
+            });
+
+            // 3. Apply NEW balance to NEW account (could be same account)
+            const newAmount = Number(amount);
+            const newBalanceChange = type === 'INCOME' ? newAmount : -newAmount;
+
+            await tx.account.update({
+                where: { id: accountId }, // New account ID
+                data: {
+                    balance: {
+                        increment: newBalanceChange
+                    }
+                }
+            });
+
+            // 4. Update Transaction Record
+            const updatedTx = await tx.transaction.update({
+                where: { id },
+                data: {
+                    amount: newAmount,
+                    type,
+                    category,
+                    date: date ? new Date(date) : new Date(),
+                    accountId, // New account ID
+                    note,
+                    isPrivate: isPrivate || false,
+                }
+            });
+
+            return updatedTx;
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to update transaction' });
+    }
+});
+
 // Create Transaction
 router.post('/transactions', async (req, res) => {
     const { amount, type, category, date, accountId, note, isPrivate } = req.body;

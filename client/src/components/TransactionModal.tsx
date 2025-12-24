@@ -6,9 +6,19 @@ import { cn, formatNumber, parseNumber } from "../lib/utils";
 interface TransactionModalProps {
     isOpen: boolean;
     onClose: () => void;
+    transactionToEdit?: {
+        id: string;
+        amount: number;
+        type: "INCOME" | "EXPENSE";
+        category: string;
+        accountId: string;
+        note?: string;
+        date: string;
+        isPrivate: boolean;
+    } | null;
 }
 
-export default function TransactionModal({ isOpen, onClose }: TransactionModalProps) {
+export default function TransactionModal({ isOpen, onClose, transactionToEdit }: TransactionModalProps) {
     const [type, setType] = useState<"EXPENSE" | "INCOME">("EXPENSE");
     const [wallets, setWallets] = useState<any[]>([]);
 
@@ -35,14 +45,28 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
     useEffect(() => {
         if (isOpen) {
             fetchWallets();
-            // Reset state on open
-            setAmount("");
-            setCategory("");
-            setNote("");
-            setDate(getCurrentLocalDateTime());
-            setIsHidden(false);
+            if (transactionToEdit) {
+                // Editing Mode
+                setAmount(formatNumber(transactionToEdit.amount));
+                setType(transactionToEdit.type);
+                setCategory(transactionToEdit.category);
+                setAccountId(transactionToEdit.accountId);
+                setNote(transactionToEdit.note || "");
+                // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
+                const d = new Date(transactionToEdit.date);
+                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                setDate(d.toISOString().slice(0, 16));
+                setIsHidden(transactionToEdit.isPrivate);
+            } else {
+                // Create Mode
+                setAmount("");
+                setCategory("");
+                setNote("");
+                setDate(getCurrentLocalDateTime());
+                setIsHidden(false);
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, transactionToEdit]);
 
     const fetchWallets = async () => {
         try {
@@ -59,26 +83,42 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Hardcoded UserId
-            const userId = "demo-user-123";
 
-            await axios.post("/api/transactions", {
-                amount: parseNumber(amount),
-                type,
-                category,
-                accountId,
-                note,
-                date,
-                isPrivate: type === 'INCOME' ? isHidden : false,
-                userId
-            }, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+
+            if (transactionToEdit) {
+                await axios.put(`/api/transactions/${transactionToEdit.id}`, {
+                    amount: parseNumber(amount),
+                    type,
+                    category,
+                    accountId,
+                    note,
+                    date,
+                    isPrivate: type === 'INCOME' ? isHidden : false,
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+            } else {
+                await axios.post("/api/transactions", {
+                    amount: parseNumber(amount),
+                    type,
+                    category,
+                    accountId,
+                    note,
+                    date,
+                    isPrivate: type === 'INCOME' ? isHidden : false,
+                    // userId is handled by backend token
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+            }
+
             onClose();
         } catch (error) {
-            alert("Failed to create transaction");
+            alert(transactionToEdit ? "Failed to update transaction" : "Failed to create transaction");
         }
     };
 
@@ -91,7 +131,7 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
             <div className="bg-white w-full md:max-w-lg md:rounded-[2.5rem] rounded-t-[2.5rem] shadow-2xl z-10 flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-300">
                 {/* Header */}
                 <div className="p-6 flex justify-between items-center border-b border-gray-100">
-                    <h3 className="text-xl font-bold">New Transaction</h3>
+                    <h3 className="text-xl font-bold">{transactionToEdit ? 'Edit Transaction' : 'New Transaction'}</h3>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
                         <X size={20} />
                     </button>
@@ -260,7 +300,7 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
                         form="tx-form"
                         className="w-full h-14 rounded-2xl bg-[var(--primary)] text-white font-bold text-lg shadow-xl shadow-orange-200 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
-                        <span>Confirm {type === 'INCOME' ? 'Income' : 'Expense'}</span>
+                        <span>{transactionToEdit ? 'Update' : 'Confirm'} {type === 'INCOME' ? 'Income' : 'Expense'}</span>
                         <ArrowRight size={20} />
                     </button>
                 </div>

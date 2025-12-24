@@ -66,6 +66,7 @@ export const translations = {
         // Transactions
         trackActivity: "Track your financial activity",
         newTransaction: "New Transaction",
+        editTransaction: "Edit Transaction",
         searchPlaceholder: "Search by category, note, or wallet...",
         hidePrivate: "Hide Private",
         showPrivate: "Show Private",
@@ -181,6 +182,7 @@ export const translations = {
         // Transactions
         trackActivity: "Theo dõi hoạt động tài chính",
         newTransaction: "Giao Dịch Mới",
+        editTransaction: "Chỉnh sửa giao dịch",
         searchPlaceholder: "Tìm theo danh mục, ghi chú, ví...",
         hidePrivate: "Ẩn riêng tư",
         showPrivate: "Hiện riêng tư",
