@@ -109,13 +109,13 @@ export default function Transactions() {
             />
 
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('transactions')}</h2>
-                    <p className="text-sm text-[var(--text-secondary)]">{t('trackActivity')}</p>
+            <div className="flex justify-between items-center gap-4">
+                <div className="min-w-0">
+                    <h2 className="text-2xl font-bold text-[var(--text-primary)] truncate">{t('transactions')}</h2>
+                    <p className="text-sm text-[var(--text-secondary)] truncate">{t('trackActivity')}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
                     <button
                         onClick={togglePrivacy}
                         className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
@@ -126,10 +126,10 @@ export default function Transactions() {
 
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-white rounded-full font-semibold shadow-lg shadow-orange-200 hover:translate-y-[-2px] transition-all"
+                        className="flex items-center gap-2 px-3 sm:px-5 py-2.5 bg-[var(--primary)] text-white rounded-full font-semibold shadow-lg shadow-orange-200 hover:translate-y-[-2px] transition-all"
                     >
                         <Plus size={18} />
-                        <span>{t('newTransaction')}</span>
+                        <span className="hidden sm:inline">{t('newTransaction')}</span>
                     </button>
                 </div>
             </div>
@@ -141,12 +141,12 @@ export default function Transactions() {
                     <input
                         type="text"
                         placeholder={t('searchPlaceholder')}
-                        className="w-full h-12 pl-12 pr-4 rounded-xl bg-white border border-transparent focus:border-[var(--primary)] outline-none transition-all shadow-sm"
+                        className="w-full h-12 pl-12 pr-4 rounded-xl bg-white border border-transparent focus:border-[var(--primary)] outline-none transition-all shadow-sm truncate"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <button className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-gray-500 hover:text-[var(--primary)] shadow-sm">
+                <button className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-gray-500 hover:text-[var(--primary)] shadow-sm shrink-0">
                     <Filter size={20} />
                 </button>
             </div>
@@ -163,28 +163,27 @@ export default function Transactions() {
                             const isMasked = tx.isPrivate && !showPrivate;
 
                             return (
-                                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl transition-colors border border-transparent hover:border-gray-100 group">
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn(
-                                            "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
-                                            tx.type === 'INCOME' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
-                                        )}>
-                                            {tx.type === 'INCOME' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-[var(--text-primary)]">{tx.category}</div>
-                                            <div className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
-                                                <span>{new Date(tx.date).toLocaleDateString()}</span>
-                                                <span>•</span>
-                                                <span>{tx.account.name}</span>
-                                            </div>
-                                            {tx.note && <div className="text-xs text-gray-400 mt-0.5 italic">{tx.note}</div>}
-                                        </div>
+                                <div key={tx.id} className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-colors border border-transparent hover:border-gray-100 group">
+                                    <div className={cn(
+                                        "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
+                                        tx.type === 'INCOME' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                                    )}>
+                                        {tx.type === 'INCOME' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                                     </div>
 
-                                    <div className="text-right flex items-center gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-bold text-[var(--text-primary)] break-words leading-tight mb-1">{tx.category}</div>
+                                        <div className="text-xs text-[var(--text-secondary)] flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-0.5">
+                                            <span className="shrink-0 font-medium">{new Date(tx.date).toLocaleDateString()}</span>
+                                            <span className="hidden sm:inline text-gray-300">•</span>
+                                            <span className="break-words text-gray-500">{tx.account.name}</span>
+                                        </div>
+                                        {tx.note && <div className="text-xs text-gray-400 mt-1 italic break-words">{tx.note}</div>}
+                                    </div>
+
+                                    <div className="text-right flex items-center gap-2 shrink-0">
                                         <div className={cn(
-                                            "text-lg font-bold flex items-center justify-end gap-2",
+                                            "text-lg font-bold flex items-center justify-end whitespace-nowrap",
                                             tx.type === 'INCOME' ? "text-green-600" : "text-red-600"
                                         )}>
                                             {isMasked ? "******" : (
