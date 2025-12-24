@@ -267,6 +267,7 @@ authRouter.post('/auth/passkey/register/verify', async (req, res) => {
             expectedChallenge: challengeRecord.challenge,
             expectedOrigin: CLIENT_URL,
             expectedRPID: RP_ID,
+            requireUserVerification: false, // Match 'preferred' logic
         });
 
         if (verification.verified && verification.registrationInfo) {
@@ -430,6 +431,7 @@ authRouter.post('/auth/passkey/login/verify', async (req, res) => {
                 counter: Number(passkey.counter),
                 transports: passkey.transports ? (passkey.transports.split(',') as any) : undefined,
             },
+            requireUserVerification: false, // Match 'preferred' logic
         });
 
         if (verification.verified) {
