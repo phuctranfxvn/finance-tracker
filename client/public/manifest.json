@@ -1,0 +1,16 @@
+{
+    "name": "eWallet",
+    "short_name": "eWallet",
+    "description": "Personal Finance Tracker",
+    "theme_color": "#ff6b00",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}
