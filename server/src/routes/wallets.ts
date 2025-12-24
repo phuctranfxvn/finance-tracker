@@ -54,7 +54,8 @@ router.put('/wallets/:id', async (req, res) => {
         const { name, bankName, type, currency } = req.body;
         const userId = req.user!.userId;
 
-        const wallet = await prisma.account.update({
+        // Use updateMany to ensure ownership (cannot use update with non-unique where clause)
+        const result = await prisma.account.updateMany({
             where: { id, userId },
             data: {
                 name,
@@ -63,6 +64,15 @@ router.put('/wallets/:id', async (req, res) => {
                 currency
             },
         });
+
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Wallet not found or unauthorized' });
+        }
+
+        const wallet = await prisma.account.findUnique({
+            where: { id }
+        });
+
         res.json(wallet);
     } catch (error) {
         res.status(500).json({ error: 'Failed to update wallet' });

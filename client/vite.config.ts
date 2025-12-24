@@ -13,8 +13,16 @@ export default defineConfig({
       '127.0.0.1',
       '0.0.0.0',
       '0.0.0.0',
-      'fin.tranphuc.site'
-    ]
+      'fin.tranphuc.site',
+      'fin-api.tranphuc.site'
+    ],
+    proxy: {
+      '/api': {
+        target: 'https://fin-api.tranphuc.site',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   }
 
 })

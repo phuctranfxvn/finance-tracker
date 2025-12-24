@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
             // Verify with /me endpoint could be good here, but for now simple restore
+            axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
         }
         setLoading(false);
     }, []);
