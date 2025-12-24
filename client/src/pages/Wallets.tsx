@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
-import { Plus, Wallet as WalletIcon, CreditCard, MoreHorizontal, Star, PenLine, RotateCcw } from "lucide-react";
+import { Plus, Wallet as WalletIcon, CreditCard, MoreHorizontal, Star, PenLine, RotateCcw, Landmark } from "lucide-react";
 import { cn } from "../lib/utils";
 
 interface Wallet {
@@ -15,19 +15,22 @@ interface Wallet {
 }
 
 const VIETNAM_BANKS = [
-    { code: "VCB", name: "Vietcombank", logo: "https://api.vietqr.io/img/VCB.png" },
-    { code: "MB", name: "MB Bank", logo: "https://api.vietqr.io/img/MB.png" },
-    { code: "TCB", name: "Techcombank", logo: "https://api.vietqr.io/img/TCB.png" },
-    { code: "VPB", name: "VPBank", logo: "https://api.vietqr.io/img/VPB.png" },
-    { code: "CTG", name: "VietinBank", logo: "https://api.vietqr.io/img/ICB.png" }, // VietinBank is ICB in VietQR
-    { code: "ACB", name: "ACB", logo: "https://api.vietqr.io/img/ACB.png" },
-    { code: "BIDV", name: "BIDV", logo: "https://api.vietqr.io/img/BIDV.png" },
-    { code: "HDB", name: "HDBank", logo: "https://api.vietqr.io/img/HDB.png" },
-    { code: "STB", name: "Sacombank", logo: "https://api.vietqr.io/img/STB.png" },
-    { code: "TPB", name: "TPBank", logo: "https://api.vietqr.io/img/TPB.png" },
-    { code: "VIB", name: "VIB", logo: "https://api.vietqr.io/img/VIB.png" },
-    { code: "MSB", name: "MSB", logo: "https://api.vietqr.io/img/MSB.png" },
-    { code: "OCB", name: "OCB", logo: "https://api.vietqr.io/img/OCB.png" },
+    { code: "VCB", name: "Vietcombank", logo: "/banks/VCB.jpeg" },
+    { code: "MB", name: "MB Bank", logo: "/banks/MB.jpeg" },
+    { code: "TCB", name: "Techcombank", logo: "/banks/TCB.jpeg" },
+    { code: "VPB", name: "VPBank", logo: "/banks/VPB.jpeg" },
+    { code: "CTG", name: "VietinBank", logo: "/banks/CTG.jpeg" }, // VietinBank is ICB in VietQR
+    { code: "ACB", name: "ACB", logo: "/banks/ACB.jpeg" },
+    { code: "BIDV", name: "BIDV", logo: "/banks/BIDV.jpeg" },
+    { code: "HDB", name: "HDBank", logo: "/banks/HDB.jpeg" },
+    { code: "STB", name: "Sacombank", logo: "/banks/STB.jpeg" },
+    { code: "TPB", name: "TPBank", logo: "/banks/TPB.jpeg" },
+    { code: "VIB", name: "VIB", logo: "/banks/VIB.jpeg" },
+    { code: "MSB", name: "MSB", logo: "/banks/MSB.jpeg" },
+    { code: "OCB", name: "OCB", logo: "/banks/OCB.jpeg" },
+    { code: "MOMO", name: "Momo", logo: "/banks/MOMO.jpeg" },
+    { code: "ZALOPAY", name: "ZaloPay", logo: "/banks/ZALOPAY.jpeg" },
+    { code: "SHOPEEPAY", name: "ShopeePay", logo: "/banks/SHOPEEPAY.jpeg" },
 ];
 
 export default function Wallets() {
@@ -175,7 +178,7 @@ export default function Wallets() {
     };
 
     return (
-        <div className="flex flex-col h-full gap-8">
+        <div className="flex flex-col min-h-full gap-8">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
@@ -200,7 +203,7 @@ export default function Wallets() {
                         >
                             {/* Background Pattern / Watermark for Bank Cards */}
                             {wallet.type === 'BANK' && wallet.bankName && (
-                                <div className="absolute -bottom-6 -right-6 w-48 h-48 opacity-[0.08] pointer-events-none rotate-12 grayscale">
+                                <div className="absolute -bottom-6 -right-6 w-48 h-48 opacity-[0.25] pointer-events-none rotate-12">
                                     <img
                                         src={VIETNAM_BANKS.find(b => b.code === wallet.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
                                         alt=""
@@ -211,18 +214,10 @@ export default function Wallets() {
 
                             <div className="flex justify-between items-start z-10">
                                 <div className={cn(
-                                    "flex items-center text-xl transition-all",
-                                    wallet.type === 'BANK' ? "w-40 h-20 justify-start" : "w-16 h-16 justify-center bg-orange-50 text-orange-500 rounded-2xl"
+                                    "flex items-center justify-center w-16 h-16 rounded-2xl text-xl transition-all",
+                                    wallet.type === 'BANK' ? "bg-blue-50 text-blue-500" : "bg-orange-50 text-orange-500"
                                 )}>
-                                    {wallet.type === 'BANK' ? (
-                                        wallet.bankName ? (
-                                            <img
-                                                src={VIETNAM_BANKS.find(b => b.code === wallet.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
-                                                alt={wallet.bankName}
-                                                className="w-full h-full object-contain object-left"
-                                            />
-                                        ) : <div className="bg-gray-100 w-12 h-12 flex items-center justify-center rounded-2xl"><CreditCard size={24} className="text-gray-400" /></div>
-                                    ) : <WalletIcon size={24} />}
+                                    {wallet.type === 'BANK' ? <Landmark size={24} /> : <WalletIcon size={24} />}
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -443,6 +438,6 @@ export default function Wallets() {
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     );
 }
