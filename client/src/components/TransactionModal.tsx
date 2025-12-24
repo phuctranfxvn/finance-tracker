@@ -21,6 +21,14 @@ interface TransactionModalProps {
 export default function TransactionModal({ isOpen, onClose, transactionToEdit }: TransactionModalProps) {
     const [type, setType] = useState<"EXPENSE" | "INCOME">("EXPENSE");
     const [wallets, setWallets] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchWallets();
+            fetchCategories();
+        }
+    }, [isOpen]);
 
     // Form State
     const [amount, setAmount] = useState("");
@@ -75,6 +83,15 @@ export default function TransactionModal({ isOpen, onClose, transactionToEdit }:
             if (res.data.length > 0 && !accountId) {
                 setAccountId(res.data[0].id);
             }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const res = await axios.get("/api/categories");
+            setCategories(res.data);
         } catch (error) {
             console.error(error);
         }
@@ -251,21 +268,11 @@ export default function TransactionModal({ isOpen, onClose, transactionToEdit }:
                                     required
                                 >
                                     <option value="" disabled>Select...</option>
-                                    {type === 'EXPENSE' ? (
-                                        <>
-                                            <option value="Food & Drink">Food & Drink</option>
-                                            <option value="Transport">Transport</option>
-                                            <option value="Shopping">Shopping</option>
-                                            <option value="Housing">Housing</option>
-                                            <option value="Entertainment">Entertainment</option>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <option value="Salary">Salary</option>
-                                            <option value="Freelance">Freelance</option>
-                                            <option value="Gift">Gift</option>
-                                            <option value="Investments">Investments</option>
-                                        </>
+                                    {categories.filter(c => c.type === type).map(c => (
+                                        <option key={c.id} value={c.name}>{c.icon} {c.name}</option>
+                                    ))}
+                                    {categories.filter(c => c.type === type).length === 0 && (
+                                        <option value="" disabled>No categories found</option>
                                     )}
                                 </select>
                             </div>
