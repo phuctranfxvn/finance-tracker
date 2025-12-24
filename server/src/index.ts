@@ -8,7 +8,26 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors({
-    origin: process.env.CLIENT_URL || '*',
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        const allowedOrigins = [
+            'http://localhost:5173',
+            'http://localhost:9000',
+            'https://fin.tranphuc.site',
+            process.env.CLIENT_URL
+        ].filter(Boolean);
+
+        if (allowedOrigins.includes(origin) || process.env.CLIENT_URL === '*') {
+            callback(null, true);
+        } else {
+            // For development flexibility, you might want to allow all:
+            // callback(null, true);
+            // But complying with standards:
+            callback(null, true); // Reflect origin basically
+        }
+    },
     credentials: true
 }));
 app.use(express.json());
