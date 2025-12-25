@@ -58,11 +58,14 @@ body {
 }
 
 /* Scrollbar Hide Utility */
-.scrollbar-hide::-webkit-scrollbar {
+/* Scrollbar Hide Utility */
+.scrollbar-hide::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-.scrollbar-hide {
+.scrollbar-hide,
+.hide-scrollbar {
   -ms-overflow-style: none;
   /* IE and Edge */
   scrollbar-width: none;

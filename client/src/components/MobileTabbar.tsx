@@ -1,25 +1,27 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutGrid, Settings, Wallet, Calendar, Plus } from "lucide-react";
+import { LayoutGrid, Settings, Wallet, Plus, PiggyBank } from "lucide-react";
 import { clsx } from "clsx";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function MobileTabbar() {
     const { pathname } = useLocation();
+    const { t } = useLanguage();
 
     // Configuration for the wave shape
     // W = Width, H = Height (of the bar)
     // The curve needs to handle the center bump/notch.
     // Given CSS limitations for complex "inverted rounded corners", SVG is safer.
 
-    // Items to display (Balanced 4 items + 1 Center)
+    // Left items: Home, Assets (Savings & Debts)
     const leftItems = [
-        { icon: LayoutGrid, href: "/dashboard", label: "Home" },
-        { icon: Wallet, href: "/wallets", label: "Wallets" },
+        { icon: LayoutGrid, href: "/dashboard", label: t('dashboard') },
+        { icon: PiggyBank, href: "/finance", label: t('assets') },
     ];
 
-    // Let's redefine right items based on importance
+    // Right items: Wallets, Settings
     const rightItemsFinal = [
-        { icon: Calendar, href: "/savings", label: "Savings" },
-        { icon: Settings, href: "/settings", label: "Settings" }
+        { icon: Wallet, href: "/wallets", label: t('wallets') },
+        { icon: Settings, href: "/settings", label: t('settings') }
     ];
 
     return (
@@ -35,15 +37,15 @@ export default function MobileTabbar() {
             </div>
 
             {/* Container for content - On top of SVG */}
-            <div className="absolute bottom-0 w-full h-[80px] flex items-end pb-4 px-2">
+            <div className="absolute bottom-0 w-full h-[80px] flex items-end pb-4 px-1">
                 {/* Left Items */}
                 <div className="flex-1 flex justify-around mb-1">
                     {leftItems.map((item) => {
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.href} to={item.href} className="flex flex-col items-center gap-1 min-w-[60px]">
-                                <item.icon size={24} className={clsx("transition-colors", isActive ? "text-orange-500" : "text-gray-400")} strokeWidth={isActive ? 2.5 : 2} />
-                                <span className={clsx("text-[10px] font-medium transition-colors", isActive ? "text-orange-500" : "text-gray-400")}>{item.label}</span>
+                            <Link key={item.href} to={item.href} className="flex flex-col items-center gap-1 min-w-[44px] flex-1">
+                                <item.icon size={22} className={clsx("transition-colors", isActive ? "text-orange-500" : "text-gray-400")} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className={clsx("text-[10px] font-medium transition-colors truncate w-full text-center", isActive ? "text-orange-500" : "text-gray-400")}>{item.label}</span>
                             </Link>
                         );
                     })}
@@ -57,9 +59,9 @@ export default function MobileTabbar() {
                     {rightItemsFinal.map((item) => {
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.href} to={item.href} className="flex flex-col items-center gap-1 min-w-[60px]">
-                                <item.icon size={24} className={clsx("transition-colors", isActive ? "text-orange-500" : "text-gray-400")} strokeWidth={isActive ? 2.5 : 2} />
-                                <span className={clsx("text-[10px] font-medium transition-colors", isActive ? "text-orange-500" : "text-gray-400")}>{item.label}</span>
+                            <Link key={item.href} to={item.href} className="flex flex-col items-center gap-1 min-w-[44px] flex-1">
+                                <item.icon size={22} className={clsx("transition-colors", isActive ? "text-orange-500" : "text-gray-400")} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className={clsx("text-[10px] font-medium transition-colors truncate w-full text-center", isActive ? "text-orange-500" : "text-gray-400")}>{item.label}</span>
                             </Link>
                         );
                     })}

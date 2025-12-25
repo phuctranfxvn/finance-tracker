@@ -168,7 +168,7 @@ export default function Settings() {
     };
 
     return (
-        <div className="flex flex-col gap-8 pb-20">
+        <div className="flex flex-col gap-8">
             <h1 className="text-3xl font-bold">{t('settings')}</h1>
 
             {/* Language Settings */}

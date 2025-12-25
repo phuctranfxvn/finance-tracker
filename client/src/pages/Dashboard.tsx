@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Wallet as WalletIcon, TrendingUp, TrendingDown, PiggyBank, Briefcase, Eye, EyeOff, Landmark, CreditCard, X } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, PiggyBank, Briefcase, Eye, EyeOff, Landmark, CreditCard, X, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import clsx from "clsx";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
@@ -116,6 +117,7 @@ export default function Dashboard() {
 
     return (
         <div className="flex flex-col gap-8 pb-32 h-full overflow-y-auto hide-scrollbar">
+            <h1 className="text-3xl font-bold">{t('dashboard')}</h1>
             <PasswordModal
                 isOpen={showPasswordModal}
                 onClose={() => setShowPasswordModal(false)}
@@ -234,7 +236,15 @@ export default function Dashboard() {
                     </div>
 
                     {/* Transaction List (Moved Here) */}
-                    <TransactionList showControls={false} limit={10} />
+                    <div>
+                        <div className="flex justify-between items-center mb-6 px-2">
+                            <h3 className="font-bold text-lg text-[var(--text-primary)]">{t('recentTransactions')}</h3>
+                            <Link to="/transactions" className="text-sm font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1">
+                                Xem thêm <ArrowRight size={14} />
+                            </Link>
+                        </div>
+                        <TransactionList showControls={false} limit={10} />
+                    </div>
                 </div>
 
                 <div className="flex flex-col gap-6">

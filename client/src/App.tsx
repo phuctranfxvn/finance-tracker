@@ -8,6 +8,7 @@ import Debts from "./pages/Debts";
 import Login from "./pages/Login";
 import Settings from "./pages/Settings";
 import QuickAddPage from "./pages/QuickAddPage";
+import Finance from "./pages/Finance";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 
@@ -38,6 +39,7 @@ function App() {
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="savings" element={<Savings />} />
                 <Route path="debts" element={<Debts />} />
+                <Route path="finance" element={<Finance />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>

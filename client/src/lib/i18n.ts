@@ -3,6 +3,7 @@ export const translations = {
     en: {
         // Sidebar
         dashboard: "Dashboard",
+        assets: "Assets",
         transactions: "Transactions",
         wallets: "Wallets",
         categories: "Categories",
@@ -121,13 +122,14 @@ export const translations = {
     },
     vi: {
         // Sidebar
-        dashboard: "Tổng quan",
-        transactions: "Giao dịch",
-        wallets: "Ví của tôi",
-        categories: "Danh mục",
-        debts: "Sổ nợ",
-        savings: "Tiết kiệm",
-        settings: "Cài đặt",
+        dashboard: "Tổng Quan",
+        assets: "Tài Sản",
+        transactions: "Giao Dịch",
+        wallets: "Ví Của Tôi",
+        categories: "Danh Mục",
+        debts: "Sổ Nợ",
+        savings: "Tiết Kiệm",
+        settings: "Cài Đặt",
         logout: "Đăng xuất",
 
         // Dashboard

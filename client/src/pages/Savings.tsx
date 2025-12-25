@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useLanguage } from "../context/LanguageContext";
-import { Plus, PiggyBank, CheckCircle, Pencil, RotateCcw, X, AlertTriangle, Check } from "lucide-react";
+import { Plus, PiggyBank, CheckCircle, Pencil, RotateCcw, X, AlertTriangle } from "lucide-react";
 import { cn } from "../lib/utils";
 
 interface Saving {
@@ -186,12 +186,8 @@ export default function Savings() {
     };
 
     return (
-        <div className="flex flex-col h-full gap-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('savings')}</h2>
-                    <p className="text-sm text-[var(--text-secondary)]">{t('growWealth')}</p>
-                </div>
+        <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex justify-end items-center px-4 md:px-8 pt-0 pb-4 shrink-0">
                 <button
                     onClick={() => { resetForm(); setIsModalOpen(true); fetchWallets(); }}
                     className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-full font-semibold shadow-lg shadow-pink-200 hover:translate-y-[-2px] transition-all"
@@ -201,124 +197,126 @@ export default function Savings() {
                 </button>
             </div>
 
-            {/* Grouped Savings */}
-            {Object.entries(savings.reduce((acc, saving) => {
-                const catId = saving.savingCategoryId || 'uncategorized';
-                if (!acc[catId]) acc[catId] = [];
-                acc[catId].push(saving);
-                return acc;
-            }, {} as Record<string, Saving[]>)).sort((a, b) => {
-                // Sort by category name? Or just put uncategorized last
-                if (a[0] === 'uncategorized') return 1;
-                if (b[0] === 'uncategorized') return -1;
-                return 0;
-            }).map(([catId, groupSavings]) => {
-                const category = categories.find(c => c.id === catId);
-                const totalAmount = groupSavings.reduce((sum, s) => sum + Number(s.amount), 0);
+            <div className="flex-1 overflow-y-auto px-4 md:px-8 hide-scrollbar flex flex-col gap-6">
+                {/* Grouped Savings */}
+                {Object.entries(savings.reduce((acc, saving) => {
+                    const catId = saving.savingCategoryId || 'uncategorized';
+                    if (!acc[catId]) acc[catId] = [];
+                    acc[catId].push(saving);
+                    return acc;
+                }, {} as Record<string, Saving[]>)).sort((a, b) => {
+                    // Sort by category name? Or just put uncategorized last
+                    if (a[0] === 'uncategorized') return 1;
+                    if (b[0] === 'uncategorized') return -1;
+                    return 0;
+                }).map(([catId, groupSavings]) => {
+                    const category = categories.find(c => c.id === catId);
+                    const totalAmount = groupSavings.reduce((sum, s) => sum + Number(s.amount), 0);
 
-                return (
-                    <div key={catId} className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-lg flex items-center gap-2">
-                                <span className="text-2xl">{category?.icon || "📂"}</span>
-                                {category?.name || t('uncategorized')}
-                                <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2">
-                                    {groupSavings.length}
-                                </span>
-                            </h3>
-                            <div className="font-bold text-gray-900">
-                                Total: {totalAmount.toLocaleString()} ₫
+                    return (
+                        <div key={catId} className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    <span className="text-2xl">{category?.icon || "📂"}</span>
+                                    {category?.name || t('uncategorized')}
+                                    <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2">
+                                        {groupSavings.length}
+                                    </span>
+                                </h3>
+                                <div className="font-bold text-gray-900">
+                                    Total: {totalAmount.toLocaleString()} ₫
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {groupSavings.map((saving) => (
+                                    <div
+                                        key={saving.id}
+                                        className={cn(
+                                            "relative p-5 rounded-[1.5rem] bg-white border border-gray-100 shadow-sm flex flex-col justify-between transition-all hover:shadow-md",
+                                            saving.isSettled ? "opacity-60 grayscale" : ""
+                                        )}
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div className="w-12 h-12 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center">
+                                                <PiggyBank size={24} />
+                                            </div>
+                                            <div className={cn(
+                                                "px-3 py-1 rounded-full text-xs font-bold",
+                                                saving.isSettled ? "bg-gray-100 text-gray-500" : "bg-green-100 text-green-600"
+                                            )}>
+                                                {saving.isSettled ? t('settled') : t('active')}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-sm text-gray-500 font-medium mb-1">{saving.bankName}</div>
+                                            <div className="text-3xl font-bold text-[var(--text-primary)]">
+                                                {Number(saving.amount).toLocaleString()} ₫
+                                            </div>
+                                            <div className="flex justify-between items-end mt-1">
+                                                <div className="text-xs text-pink-500 font-bold">
+                                                    +{Number(saving.interestRate)}% / year
+                                                </div>
+                                                {saving.endDate && (
+                                                    <div className="text-right">
+                                                        <div className="text-[10px] text-gray-400 font-medium">{t('estMaturity')}</div>
+                                                        <div className="text-sm font-bold text-green-600">
+                                                            {(saving.amount * (1 + (saving.interestRate / 100) * ((new Date(saving.endDate).getTime() - new Date(saving.startDate).getTime()) / (1000 * 60 * 60 * 24)) / 365)).toLocaleString(undefined, { maximumFractionDigits: 0 })} ₫
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-[10px] text-gray-400 mt-3 font-medium flex gap-2">
+                                                <span>{new Date(saving.startDate).toLocaleDateString()}</span>
+                                                {saving.endDate && (
+                                                    <>
+                                                        <span>→</span>
+                                                        <span>{new Date(saving.endDate).toLocaleDateString()}</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 flex gap-2">
+                                            {!saving.isSettled ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleEdit(saving)}
+                                                        className="flex-1 py-2 rounded-xl border border-gray-100 text-gray-600 hover:bg-gray-50 text-xs font-bold flex items-center justify-center gap-1"
+                                                    >
+                                                        <Pencil size={14} /> {t('edit')}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSettleClick(saving.id)}
+                                                        className="flex-[2] py-2 rounded-xl bg-black text-white hover:bg-gray-800 text-xs font-bold flex items-center justify-center gap-2"
+                                                    >
+                                                        <CheckCircle size={14} /> {t('settleWithdraw')}
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleUnsettle(saving.id)}
+                                                    className="w-full py-2 rounded-xl border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50 text-xs font-bold flex items-center justify-center gap-2"
+                                                >
+                                                    <RotateCcw size={14} /> {t('unsettle')}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
+                    );
+                })}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {groupSavings.map((saving) => (
-                                <div
-                                    key={saving.id}
-                                    className={cn(
-                                        "relative p-5 rounded-[1.5rem] bg-white border border-gray-100 shadow-sm flex flex-col justify-between transition-all hover:shadow-md",
-                                        saving.isSettled ? "opacity-60 grayscale" : ""
-                                    )}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div className="w-12 h-12 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center">
-                                            <PiggyBank size={24} />
-                                        </div>
-                                        <div className={cn(
-                                            "px-3 py-1 rounded-full text-xs font-bold",
-                                            saving.isSettled ? "bg-gray-100 text-gray-500" : "bg-green-100 text-green-600"
-                                        )}>
-                                            {saving.isSettled ? t('settled') : t('active')}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="text-sm text-gray-500 font-medium mb-1">{saving.bankName}</div>
-                                        <div className="text-3xl font-bold text-[var(--text-primary)]">
-                                            {Number(saving.amount).toLocaleString()} ₫
-                                        </div>
-                                        <div className="flex justify-between items-end mt-1">
-                                            <div className="text-xs text-pink-500 font-bold">
-                                                +{Number(saving.interestRate)}% / year
-                                            </div>
-                                            {saving.endDate && (
-                                                <div className="text-right">
-                                                    <div className="text-[10px] text-gray-400 font-medium">{t('estMaturity')}</div>
-                                                    <div className="text-sm font-bold text-green-600">
-                                                        {(saving.amount * (1 + (saving.interestRate / 100) * ((new Date(saving.endDate).getTime() - new Date(saving.startDate).getTime()) / (1000 * 60 * 60 * 24)) / 365)).toLocaleString(undefined, { maximumFractionDigits: 0 })} ₫
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="text-[10px] text-gray-400 mt-3 font-medium flex gap-2">
-                                            <span>{new Date(saving.startDate).toLocaleDateString()}</span>
-                                            {saving.endDate && (
-                                                <>
-                                                    <span>→</span>
-                                                    <span>{new Date(saving.endDate).toLocaleDateString()}</span>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-4 flex gap-2">
-                                        {!saving.isSettled ? (
-                                            <>
-                                                <button
-                                                    onClick={() => handleEdit(saving)}
-                                                    className="flex-1 py-2 rounded-xl border border-gray-100 text-gray-600 hover:bg-gray-50 text-xs font-bold flex items-center justify-center gap-1"
-                                                >
-                                                    <Pencil size={14} /> {t('edit')}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSettleClick(saving.id)}
-                                                    className="flex-[2] py-2 rounded-xl bg-black text-white hover:bg-gray-800 text-xs font-bold flex items-center justify-center gap-2"
-                                                >
-                                                    <CheckCircle size={14} /> {t('settleWithdraw')}
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleUnsettle(saving.id)}
-                                                className="w-full py-2 rounded-xl border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50 text-xs font-bold flex items-center justify-center gap-2"
-                                            >
-                                                <RotateCcw size={14} /> {t('unsettle')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                {savings.length === 0 && (
+                    <div className="col-span-full text-center py-12 bg-white rounded-[2rem] border border-dashed border-gray-200">
+                        <PiggyBank size={48} className="mx-auto text-gray-200 mb-4" />
+                        <p className="text-gray-400 font-medium">No savings found.</p>
                     </div>
-                );
-            })}
-
-            {savings.length === 0 && (
-                <div className="col-span-full text-center py-12 bg-white rounded-[2rem] border border-dashed border-gray-200">
-                    <PiggyBank size={48} className="mx-auto text-gray-200 mb-4" />
-                    <p className="text-gray-400 font-medium">No savings found.</p>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Modal */}
             {isModalOpen && (
