@@ -11,6 +11,7 @@
     "start": "serve -s dist -l 9000"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@simplewebauthn/browser": "^13.2.2",
     "@tailwindcss/postcss": "^4.1.18",

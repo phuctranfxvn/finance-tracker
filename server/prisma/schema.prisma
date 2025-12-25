@@ -36,6 +36,9 @@ model Account {
   name           String
   type           AccountType   @default(WALLET)
   bankName       String?       // New field for storing selected bank code/name
+  creditCardType String?       // "VISA", "MASTERCARD", "JCB", etc.
+  showInQuickAdd Boolean       @default(true)
+  sortOrder      Int           @default(0)
   currency       String        @default("VND")
   balance        Decimal       @default(0)
   createdAt      DateTime      @default(now())
@@ -50,6 +53,7 @@ model Account {
 enum AccountType {
   WALLET
   BANK
+  CREDIT_CARD
 }
 
 model Transaction {

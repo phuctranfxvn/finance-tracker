@@ -13,7 +13,7 @@ router.get('/wallets', async (req, res) => {
         const userId = req.user!.userId;
         const wallets = await prisma.account.findMany({
             where: { userId },
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
         });
         res.json(wallets);
     } catch (error) {
@@ -23,7 +23,7 @@ router.get('/wallets', async (req, res) => {
 
 router.post('/wallets', async (req, res) => {
     try {
-        const { name, balance, currency, type, bankName } = req.body;
+        const { name, balance, currency, type, bankName, creditCardType, showInQuickAdd } = req.body;
         const userId = req.user!.userId;
 
         // Simple validation
@@ -38,6 +38,8 @@ router.post('/wallets', async (req, res) => {
                 currency: currency || 'VND',
                 type: type || 'WALLET',
                 bankName,
+                creditCardType,
+                showInQuickAdd: showInQuickAdd !== undefined ? showInQuickAdd : true,
                 userId,
             },
         });
@@ -47,11 +49,38 @@ router.post('/wallets', async (req, res) => {
     }
 });
 
+// Reorder Wallets
+router.put('/wallets/reorder', async (req, res) => {
+    try {
+        const { items } = req.body; // Array of { id, sortOrder }
+        const userId = req.user!.userId;
+
+        if (!Array.isArray(items)) {
+            return res.status(400).json({ error: 'Invalid items format' });
+        }
+
+        // Use transaction for atomic updates
+        await prisma.$transaction(
+            items.map((item: any) =>
+                prisma.account.updateMany({
+                    where: { id: item.id, userId },
+                    data: { sortOrder: item.sortOrder },
+                })
+            )
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('[DEBUG] Reorder error:', error);
+        res.status(500).json({ error: 'Failed to reorder wallets' });
+    }
+});
+
 // Update Wallet
 router.put('/wallets/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, bankName, type, currency } = req.body;
+        const { name, bankName, type, currency, creditCardType, showInQuickAdd } = req.body;
         const userId = req.user!.userId;
 
         console.log(`[DEBUG] Updating wallet: id=${id}, userId=${userId}`);
@@ -64,7 +93,9 @@ router.put('/wallets/:id', async (req, res) => {
                 name,
                 bankName,
                 type,
-                currency
+                currency,
+                creditCardType,
+                showInQuickAdd
             },
         });
 

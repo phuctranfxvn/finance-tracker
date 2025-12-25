@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, Briefcase, Eye, EyeOff } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, PiggyBank, Briefcase, Eye, EyeOff, Landmark, CreditCard, MoreHorizontal, X } from "lucide-react";
 import clsx from "clsx";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import PasswordModal from "../components/PasswordModal";
 import { formatNumber, parseNumber } from "../lib/utils";
+import { CREDIT_CARD_TYPES, VIETNAM_BANKS } from "../lib/constants";
 
 interface DashboardStats {
     totalBalance: number;
@@ -30,9 +31,13 @@ export default function Dashboard() {
     const [selectedWalletId, setSelectedWalletId] = useState<string>("");
 
     // Privacy Logic
+    // Privacy Logic
     const [showIncome, setShowIncome] = useState(false);
+    const [showOtherWalletsModal, setShowOtherWalletsModal] = useState(false);
 
     // Derived State
+    const hiddenWallets = wallets.slice(5);
+
     const selectedWallet = wallets.find(w => w.id === selectedWalletId);
     const currencyLabel = selectedWallet?.currency || 'VND';
 
@@ -178,7 +183,7 @@ export default function Dashboard() {
 
     // 3. Render
     const statCards = [
-        { label: t('totalBalance'), value: Number(stats.totalBalance).toLocaleString() + " ₫", icon: Wallet, color: "bg-blue-100 text-blue-600", bg: "bg-blue-50" },
+        { label: t('totalBalance'), value: Number(stats.totalBalance).toLocaleString() + " ₫", icon: WalletIcon, color: "bg-blue-100 text-blue-600", bg: "bg-blue-50" },
         {
             label: t('totalIncome'),
             value: showIncome ? Number(stats.totalIncome).toLocaleString() + " ₫" : "******",
@@ -205,6 +210,47 @@ export default function Dashboard() {
                 onClose={() => setShowPasswordModal(false)}
                 onSuccess={handlePasswordSuccess}
             />
+            {/* Other Wallets Modal */}
+            {showOtherWalletsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in-up">
+                        <div className="p-4 border-b flex items-center justify-between bg-gray-50">
+                            <h3 className="font-bold text-lg text-gray-900">Select Wallet</h3>
+                            <button onClick={() => setShowOtherWalletsModal(false)} className="p-2 -mr-2 text-gray-500 hover:bg-gray-200 rounded-full transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-4 max-h-[60vh] overflow-y-auto space-y-2">
+                            {hiddenWallets.map(w => (
+                                <button
+                                    key={w.id}
+                                    onClick={() => {
+                                        setSelectedWalletId(w.id);
+                                        setShowOtherWalletsModal(false);
+                                    }}
+                                    className={clsx(
+                                        "w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left group relative",
+                                        selectedWalletId === w.id
+                                            ? "bg-orange-50 border-orange-200"
+                                            : "bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                                    )}
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                                        {w.type === 'BANK' ? <Landmark size={20} /> : w.type === 'CREDIT_CARD' ? <CreditCard size={20} /> : <WalletIcon size={20} />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-sm font-bold text-gray-900">{w.name}</div>
+                                        <div className="text-xs text-gray-500">{Number(w.balance).toLocaleString()} {w.currency}</div>
+                                    </div>
+                                    {selectedWalletId === w.id && (
+                                        <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Quick Add Section - Flat Material with Color (Bold) */}
             <div className={clsx(
                 "p-4 lg:p-8 rounded-[2rem] shadow-sm border relative overflow-hidden transition-all duration-300",
@@ -262,25 +308,142 @@ export default function Dashboard() {
 
                         {/* Wallet Selector - Material Outline */}
                         <div className="relative">
-                            <label className="text-[10px] lg:text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">{t('fromWallet')}</label>
-                            <div className={clsx(
-                                "flex items-center h-10 lg:h-12 rounded-xl px-3 lg:px-4 border-2 transition-all bg-orange-50/30",
-                                transactionType === 'EXPENSE'
-                                    ? "border-orange-100 hover:border-orange-200"
-                                    : "border-green-100 hover:border-green-200"
-                            )}>
-                                <span className={clsx("mr-2", transactionType === 'EXPENSE' ? "text-orange-500" : "text-green-500")}>
-                                    <Wallet size={14} />
-                                </span>
-                                <select
-                                    value={selectedWalletId}
-                                    onChange={(e) => setSelectedWalletId(e.target.value)}
-                                    className="w-full h-full bg-transparent font-bold outline-none appearance-none text-gray-700 cursor-pointer text-xs lg:text-sm"
-                                >
-                                    {wallets.map(w => (
-                                        <option key={w.id} value={w.id}>{w.name} ({Number(w.balance).toLocaleString()} {w.currency})</option>
-                                    ))}
-                                </select>
+                            <label className="text-[10px] lg:text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-2 block">{t('fromWallet')}</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {/* Top 5 Wallets */}
+                                {wallets.slice(0, 5).map(w => (
+                                    <button
+                                        key={w.id}
+                                        onClick={() => setSelectedWalletId(w.id)}
+                                        className={clsx(
+                                            "flex flex-col items-center gap-2 p-2 rounded-2xl border-2 transition-all group relative overflow-hidden",
+                                            selectedWalletId === w.id
+                                                ? (transactionType === 'EXPENSE' ? "bg-orange-50 border-orange-500 shadow-md transform scale-105" : "bg-green-50 border-green-500 shadow-md transform scale-105")
+                                                : "bg-white border-transparent hover:border-gray-200"
+                                        )}
+                                    >
+                                        {/* Icon Container - Centered */}
+                                        <div className={clsx(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors",
+                                            selectedWalletId === w.id
+                                                ? (transactionType === 'EXPENSE' ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600")
+                                                : "bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600"
+                                        )}>
+                                            {w.type === 'BANK' ? (
+                                                w.bankName ? (
+                                                    <img
+                                                        src={VIETNAM_BANKS.find(b => b.code === w.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
+                                                        alt={w.bankName}
+                                                        className="w-full h-full object-contain p-1"
+                                                    />
+                                                ) : <Landmark size={20} />
+                                            ) : w.type === 'CREDIT_CARD' ? (
+                                                w.creditCardType ? (
+                                                    <img
+                                                        src={CREDIT_CARD_TYPES.find(c => c.code === w.creditCardType)?.logo}
+                                                        alt={w.creditCardType}
+                                                        className="w-full h-full object-contain p-1"
+                                                    />
+                                                ) : <CreditCard size={20} />
+                                            ) : (
+                                                <WalletIcon size={20} />
+                                            )}
+                                        </div>
+
+                                        <div className="text-center w-full z-10">
+                                            <div className="text-[10px] lg:text-xs font-bold truncate w-full px-1">
+                                                {w.name}
+                                            </div>
+                                            <div className={clsx(
+                                                "text-[9px] lg:text-[10px] font-medium",
+                                                selectedWalletId === w.id
+                                                    ? (transactionType === 'EXPENSE' ? "text-orange-600/80" : "text-green-600/80")
+                                                    : "text-gray-400"
+                                            )}>
+                                                {Number(w.balance).toLocaleString()} {w.currency === 'VND' ? '₫' : '$'}
+                                            </div>
+                                        </div>
+
+                                        {/* Status Indicator Dot */}
+                                        {selectedWalletId === w.id && (
+                                            <div className={clsx(
+                                                "absolute top-2 right-2 w-1.5 h-1.5 rounded-full",
+                                                transactionType === 'EXPENSE' ? "bg-orange-500" : "bg-green-500"
+                                            )}></div>
+                                        )}
+                                    </button>
+                                ))}
+
+                                {/* Others Button - Shows if > 5 wallets */}
+                                {wallets.length > 5 && (
+                                    <button
+                                        onClick={() => setShowOtherWalletsModal(true)}
+                                        className={clsx(
+                                            "flex flex-col items-center gap-2 p-2 rounded-2xl border-2 transition-all group relative overflow-hidden",
+                                            !wallets.slice(0, 5).some(w => w.id === selectedWalletId)
+                                                ? (transactionType === 'EXPENSE' ? "bg-orange-50 border-orange-500 shadow-md transform scale-105" : "bg-green-50 border-green-500 shadow-md transform scale-105")
+                                                : "bg-white border-transparent hover:border-gray-200"
+                                        )}
+                                    >
+                                        {!wallets.slice(0, 5).some(w => w.id === selectedWalletId) && selectedWallet ? (
+                                            <>
+                                                <div className={clsx(
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors",
+                                                    transactionType === 'EXPENSE' ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"
+                                                )}>
+                                                    {selectedWallet.type === 'BANK' ? (
+                                                        selectedWallet.bankName ? (
+                                                            <img
+                                                                src={VIETNAM_BANKS.find(b => b.code === selectedWallet.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
+                                                                alt={selectedWallet.bankName}
+                                                                className="w-full h-full object-contain p-1"
+                                                            />
+                                                        ) : <Landmark size={20} />
+                                                    ) : selectedWallet.type === 'CREDIT_CARD' ? (
+                                                        selectedWallet.creditCardType ? (
+                                                            <img
+                                                                src={CREDIT_CARD_TYPES.find(c => c.code === selectedWallet.creditCardType)?.logo}
+                                                                alt={selectedWallet.creditCardType}
+                                                                className="w-full h-full object-contain p-1"
+                                                            />
+                                                        ) : <CreditCard size={20} />
+                                                    ) : (
+                                                        <WalletIcon size={20} />
+                                                    )}
+                                                </div>
+                                                <div className="text-center w-full z-10">
+                                                    <div className="text-[10px] lg:text-xs font-bold truncate w-full px-1">
+                                                        {selectedWallet.name}
+                                                    </div>
+                                                    <div className={clsx(
+                                                        "text-[9px] lg:text-[10px] font-medium",
+                                                        transactionType === 'EXPENSE' ? "text-orange-600/80" : "text-green-600/80"
+                                                    )}>
+                                                        {Number(selectedWallet.balance).toLocaleString()} {selectedWallet.currency === 'VND' ? '₫' : '$'}
+                                                    </div>
+                                                </div>
+                                                <div className={clsx(
+                                                    "absolute top-2 right-2 w-1.5 h-1.5 rounded-full",
+                                                    transactionType === 'EXPENSE' ? "bg-orange-500" : "bg-green-500"
+                                                )}></div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600">
+                                                    <MoreHorizontal size={20} />
+                                                </div>
+                                                <div className="text-center w-full z-10">
+                                                    <div className="text-[10px] lg:text-xs font-bold truncate w-full px-1">
+                                                        {t('others') || 'Others'}
+                                                    </div>
+                                                    <div className="text-[9px] lg:text-[10px] font-medium text-gray-400">
+                                                        {wallets.length - 5} more
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                         </div>
 

@@ -17,6 +17,7 @@ export const translations = {
         totalExpense: "Total Expense",
         totalSavings: "Total Savings",
         quickAdd: "Quick Add",
+        others: "Others",
         expense: "Expense",
         income: "Income",
         fromWallet: "From Wallet",
@@ -62,6 +63,8 @@ export const translations = {
         viewTransactions: "View Transactions",
         confirmDeleteWallet: "Are you sure you want to delete this wallet? This action cannot be undone.",
         cannotDeleteWallet: "Cannot delete wallet with existing transactions. Please delete all transactions associated with this wallet first.",
+        showInQuickAdd: "Show in Quick Add",
+        quickAddDescription: "Show this wallet in the Quick Add list on Dashboard.",
 
         // Transactions
         trackActivity: "Track your financial activity",
@@ -132,7 +135,8 @@ export const translations = {
         totalIncome: "Tổng thu nhập",
         totalExpense: "Tổng chi tiêu",
         totalSavings: "Tiền tiết kiệm",
-        quickAdd: "Thêm nhanh",
+        quickAdd: "Thêm Nhanh",
+        others: "Khác",
         expense: "Chi tiêu",
         income: "Thu nhập",
         fromWallet: "Từ ví",
@@ -178,6 +182,8 @@ export const translations = {
         viewTransactions: "Xem giao dịch",
         confirmDeleteWallet: "Bạn có chắc chắn muốn xóa ví này? Hành động này không thể hoàn tác.",
         cannotDeleteWallet: "Không thể xóa ví đã có giao dịch. Vui lòng xóa hết giao dịch liên quan trước.",
+        showInQuickAdd: "Hiển thị trong Thêm Nhanh",
+        quickAddDescription: "Cho phép ví này xuất hiện trong phần thêm nhanh ở Trang chủ.",
 
         // Transactions
         trackActivity: "Theo dõi hoạt động tài chính",

@@ -3,36 +3,22 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
-import { Plus, Wallet as WalletIcon, Star, PenLine, RotateCcw, Landmark, Trash2, History } from "lucide-react";
+import { Plus, Wallet as WalletIcon, Star, PenLine, RotateCcw, Landmark, Trash2, History, CreditCard, GripVertical } from "lucide-react";
+import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { cn } from "../lib/utils";
 
 interface Wallet {
     id: string;
     name: string;
-    type: "WALLET" | "BANK";
+    type: "WALLET" | "BANK" | "CREDIT_CARD";
     balance: number;
     currency: string;
     bankName?: string;
+    creditCardType?: string;
+    showInQuickAdd?: boolean;
 }
 
-const VIETNAM_BANKS = [
-    { code: "VCB", name: "Vietcombank", logo: "/banks/VCB.jpeg" },
-    { code: "MB", name: "MB Bank", logo: "/banks/MB.jpeg" },
-    { code: "TCB", name: "Techcombank", logo: "/banks/TCB.jpeg" },
-    { code: "VPB", name: "VPBank", logo: "/banks/VPB.jpeg" },
-    { code: "CTG", name: "VietinBank", logo: "/banks/CTG.jpeg" }, // VietinBank is ICB in VietQR
-    { code: "ACB", name: "ACB", logo: "/banks/ACB.jpeg" },
-    { code: "BIDV", name: "BIDV", logo: "/banks/BIDV.jpeg" },
-    { code: "HDB", name: "HDBank", logo: "/banks/HDB.jpeg" },
-    { code: "STB", name: "Sacombank", logo: "/banks/STB.jpeg" },
-    { code: "TPB", name: "TPBank", logo: "/banks/TPB.jpeg" },
-    { code: "VIB", name: "VIB", logo: "/banks/VIB.jpeg" },
-    { code: "MSB", name: "MSB", logo: "/banks/MSB.jpeg" },
-    { code: "OCB", name: "OCB", logo: "/banks/OCB.jpeg" },
-    { code: "MOMO", name: "Momo", logo: "/banks/MOMO.jpeg" },
-    { code: "ZALOPAY", name: "ZaloPay", logo: "/banks/ZALOPAY.jpeg" },
-    { code: "SHOPEEPAY", name: "ShopeePay", logo: "/banks/SHOPEEPAY.jpeg" },
-];
+import { CREDIT_CARD_TYPES, VIETNAM_BANKS } from "../lib/constants";
 
 export default function Wallets() {
     const { user, login, token } = useAuth(); // Use Auth Context
@@ -51,10 +37,12 @@ export default function Wallets() {
 
     // New Wallet Form State
     const [newWalletName, setNewWalletName] = useState("");
-    const [newWalletType, setNewWalletType] = useState<"WALLET" | "BANK">("WALLET");
+    const [newWalletType, setNewWalletType] = useState<"WALLET" | "BANK" | "CREDIT_CARD">("WALLET");
     const [newWalletCurrency, setNewWalletCurrency] = useState("VND");
     const [newWalletBalance, setNewWalletBalance] = useState("");
     const [selectedBankCode, setSelectedBankCode] = useState("");
+    const [selectedCreditCardType, setSelectedCreditCardType] = useState("");
+
     const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
 
     const fetchWallets = async () => {
@@ -84,6 +72,7 @@ export default function Wallets() {
                     type: newWalletType,
                     currency: newWalletCurrency,
                     bankName: selectedBankCode || undefined,
+                    creditCardType: newWalletType === 'CREDIT_CARD' ? selectedCreditCardType : undefined,
                 });
             } else {
                 // Create implementation
@@ -103,6 +92,7 @@ export default function Wallets() {
             setNewWalletName("");
             setNewWalletBalance("");
             setSelectedBankCode("");
+            setSelectedCreditCardType("");
             setNewWalletType("WALLET");
         } catch (error) {
             alert(editingWallet ? "Failed to update wallet" : "Failed to create wallet");
@@ -113,9 +103,37 @@ export default function Wallets() {
         setEditingWallet(wallet);
         setNewWalletName(wallet.name);
         setNewWalletType(wallet.type);
+        setNewWalletBalance(wallet.balance.toString());
         setNewWalletCurrency(wallet.currency);
         if (wallet.bankName) setSelectedBankCode(wallet.bankName);
+        if (wallet.creditCardType) setSelectedCreditCardType(wallet.creditCardType);
         setIsModalOpen(true);
+    };
+
+    const onDragEnd = async (result: DropResult) => {
+        if (!result.destination) return;
+
+        const items = Array.from(wallets);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        // Optimistic update
+        setWallets(items);
+
+        // Prepare bulk update payload
+        const updates = items.map((w, index) => ({
+            id: w.id,
+            sortOrder: index
+        }));
+
+        try {
+            await axios.put("/api/wallets/reorder", { items: updates }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error("Failed to reorder wallets", error);
+            fetchWallets(); // Revert on error
+        }
     };
 
     const handleSetDefault = async (walletId: string) => {
@@ -199,6 +217,16 @@ export default function Wallets() {
         }
     };
 
+    const formatNumber = (num: number, currency: string) => {
+        const options: Intl.NumberFormatOptions = {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        };
+        const formatted = num.toLocaleString(undefined, options);
+        return `${formatted} ${currency === 'VND' ? '₫' : '$'}`;
+    };
+
     return (
         <div className="flex flex-col min-h-full gap-8">
             {/* Header */}
@@ -212,111 +240,159 @@ export default function Wallets() {
             {loading ? (
                 <div className="text-center text-gray-400 py-10">Loading wallets...</div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {wallets.map((wallet) => (
-                        <div
-                            key={wallet.id}
-                            className={cn(
-                                "relative p-6 rounded-[2rem] h-48 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-xl group",
-                                wallet.type === 'BANK'
-                                    ? "bg-gradient-to-br from-white to-gray-50 text-gray-900 border border-gray-200"
-                                    : "bg-white text-[var(--text-primary)] border border-[var(--border)]"
-                            )}
-                        >
-                            {/* Background Pattern / Watermark for Bank Cards */}
-                            {wallet.type === 'BANK' && wallet.bankName && (
-                                <div className="absolute -bottom-6 -right-6 w-48 h-48 opacity-[0.25] pointer-events-none rotate-12">
-                                    <img
-                                        src={VIETNAM_BANKS.find(b => b.code === wallet.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
-                                        alt=""
-                                        className="w-full h-full object-contain"
-                                    />
-                                </div>
-                            )}
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable droppableId="wallets" direction="horizontal">
+                        {(provided) => (
+                            <div
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                            >
+                                {wallets.map((wallet, index) => (
+                                    <Draggable key={wallet.id} draggableId={wallet.id} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                className={cn(
+                                                    "relative p-6 rounded-[2rem] h-48 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-xl group",
+                                                    wallet.type === 'BANK'
+                                                        ? "bg-gradient-to-br from-white to-gray-50 text-gray-900 border border-gray-200"
+                                                        : wallet.type === 'CREDIT_CARD'
+                                                            ? "bg-gradient-to-br from-gray-900 to-gray-800 text-white border-none shadow-xl"
+                                                            : "bg-white text-[var(--text-primary)] border border-[var(--border)]"
+                                                )}
+                                                style={{ ...provided.draggableProps.style }}
+                                            >
+                                                {/* Background Pattern / Watermark for Bank Cards */}
+                                                {(wallet.type === 'BANK' || wallet.type === 'CREDIT_CARD') && wallet.bankName && (
+                                                    <div className="absolute -bottom-6 -right-6 w-48 h-48 opacity-[0.25] pointer-events-none rotate-12">
+                                                        <img
+                                                            src={VIETNAM_BANKS.find(b => b.code === wallet.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
+                                                            alt=""
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    </div>
+                                                )}
 
-                            <div className="flex justify-between items-start z-10">
-                                <div className={cn(
-                                    "flex items-center justify-center w-16 h-16 rounded-2xl text-xl transition-all",
-                                    wallet.type === 'BANK' ? "bg-blue-50 text-blue-500" : "bg-orange-50 text-orange-500"
-                                )}>
-                                    {wallet.type === 'BANK' ? <Landmark size={24} /> : <WalletIcon size={24} />}
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleSetDefault(wallet.id)}
-                                        className={cn(
-                                            "p-2 rounded-full transition-colors",
-                                            defaultWalletId === wallet.id
-                                                ? "bg-yellow-400 text-white shadow-lg"
-                                                : "hover:bg-gray-100 text-gray-300"
+                                                <div className="flex justify-between items-start z-10">
+                                                    <div className="flex items-center gap-2">
+                                                        <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing p-1 -ml-2 rounded hover:bg-black/5 text-gray-400">
+                                                            <GripVertical size={20} />
+                                                        </div>
+                                                        {wallet.type === 'CREDIT_CARD' && wallet.creditCardType ? (
+                                                            <div className="h-12 w-auto">
+                                                                <img
+                                                                    src={CREDIT_CARD_TYPES.find(c => c.code === wallet.creditCardType)?.logo}
+                                                                    alt={wallet.creditCardType}
+                                                                    className="h-full w-auto object-contain"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className={cn(
+                                                                "flex items-center justify-center w-16 h-16 rounded-2xl text-xl transition-all",
+                                                                wallet.type === 'BANK' ? "bg-blue-50 text-blue-500" : wallet.type === 'CREDIT_CARD' ? "bg-white/10 text-white" : "bg-orange-50 text-orange-500"
+                                                            )}>
+                                                                {wallet.type === 'BANK' ? <Landmark size={24} /> : wallet.type === 'CREDIT_CARD' ? <CreditCard size={24} /> : <WalletIcon size={24} />}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleSetDefault(wallet.id)}
+                                                            className={cn(
+                                                                "p-2 rounded-full transition-colors",
+                                                                defaultWalletId === wallet.id
+                                                                    ? "bg-yellow-400 text-white shadow-lg"
+                                                                    : "hover:bg-gray-100 text-gray-300"
+                                                            )}
+                                                            title={t('setAsDefault')}
+                                                        >
+                                                            <Star size={20} fill={defaultWalletId === wallet.id ? "currentColor" : "none"} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleOpenEdit(wallet)}
+                                                            className={cn(
+                                                                "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-300"
+                                                            )}
+                                                            title={t('editWallet')}
+                                                        >
+                                                            <PenLine size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleOpenAdjust(wallet)}
+                                                            className={cn(
+                                                                "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-300"
+                                                            )}
+                                                            title={t('adjustBalance')}
+                                                        >
+                                                            <RotateCcw size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleViewTransactions(wallet.id)}
+                                                            className={cn(
+                                                                "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-300"
+                                                            )}
+                                                            title={t('viewTransactions')}
+                                                        >
+                                                            <History size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteWallet(wallet.id)}
+                                                            className={cn(
+                                                                "p-2 rounded-full transition-colors hover:bg-red-50 text-gray-300 hover:text-red-500"
+                                                            )}
+                                                            title={t('deleteWallet')}
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="relative z-10">
+                                                    <div className="flex justify-between items-end">
+                                                        <div>
+                                                            <h3 className="text-lg font-bold opacity-90">{wallet.name}</h3>
+                                                            {/* Bank Name if available */}
+                                                            {wallet.type === 'BANK' && wallet.bankName && (
+                                                                <div className="text-xs opacity-70 mt-0.5">
+                                                                    {VIETNAM_BANKS.find(b => b.code === wallet.bankName)?.name}
+                                                                </div>
+                                                            )}
+                                                            {/* Card Type if available */}
+                                                            {wallet.type === 'CREDIT_CARD' && wallet.creditCardType && (
+                                                                <div className="text-xs opacity-70 mt-0.5">
+                                                                    {CREDIT_CARD_TYPES.find(c => c.code === wallet.creditCardType)?.name}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-xl font-bold tracking-tight">
+                                                                {formatNumber(Number(wallet.balance || 0), wallet.currency)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         )}
-                                        title={t('setAsDefault')}
-                                    >
-                                        <Star size={20} fill={defaultWalletId === wallet.id ? "currentColor" : "none"} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleOpenEdit(wallet)}
-                                        className={cn(
-                                            "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-300"
-                                        )}
-                                        title={t('editWallet')}
-                                    >
-                                        <PenLine size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleOpenAdjust(wallet)}
-                                        className={cn(
-                                            "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-300"
-                                        )}
-                                        title={t('adjustBalance')}
-                                    >
-                                        <RotateCcw size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleViewTransactions(wallet.id)}
-                                        className={cn(
-                                            "p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-300"
-                                        )}
-                                        title={t('viewTransactions')}
-                                    >
-                                        <History size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteWallet(wallet.id)}
-                                        className={cn(
-                                            "p-2 rounded-full transition-colors hover:bg-red-50 text-gray-300 hover:text-red-500"
-                                        )}
-                                        title={t('deleteWallet')}
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+
+                                {/* New Wallet Ghost Card */}
+                                <button
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="h-48 rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-orange-200 hover:text-orange-500 hover:bg-orange-50/50 transition-all gap-3"
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-gray-50 group-hover:bg-white flex items-center justify-center">
+                                        <Plus size={24} />
+                                    </div>
+                                    <span className="font-semibold">{t('createWallet')}</span>
+                                </button>
                             </div>
-
-                            <div className="z-10">
-                                <div className={cn("text-xs font-bold uppercase tracking-wider mb-1 opacity-70")}>
-                                    {wallet.type} • {wallet.currency}
-                                </div>
-                                <div className="text-3xl font-bold truncate">
-                                    {Number(wallet.balance).toLocaleString()} <span className="text-base font-medium opacity-50">{wallet.currency === 'VND' ? '₫' : '$'}</span>
-                                </div>
-                                <div className="text-sm font-medium mt-1 opacity-80">{wallet.name}</div>
-                            </div>
-                        </div>
-                    ))}
-
-                    {/* New Wallet Ghost Card */}
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="h-48 rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-orange-200 hover:text-orange-500 hover:bg-orange-50/50 transition-all gap-3"
-                    >
-                        <div className="w-12 h-12 rounded-full bg-gray-50 group-hover:bg-white flex items-center justify-center">
-                            <Plus size={24} />
-                        </div>
-                        <span className="font-semibold">{t('createWallet')}</span>
-                    </button>
-                    {/* Add Spacer for last item if odd number of wallets to prevent layout shift or add padding */}
-                </div>
+                        )}
+                    </Droppable>
+                </DragDropContext>
             )}
 
             {/* Create / Edit Wallet Modal */}
@@ -350,10 +426,11 @@ export default function Wallets() {
                                     >
                                         <option value="WALLET">Cash</option>
                                         <option value="BANK">Bank Account</option>
+                                        <option value="CREDIT_CARD">Credit Card</option>
                                     </select>
                                 </div>
 
-                                {newWalletType === 'BANK' && (
+                                {(newWalletType === 'BANK' || newWalletType === 'CREDIT_CARD') && (
                                     <div className="space-y-1 col-span-2">
                                         <label className="text-xs font-bold text-gray-500 uppercase">Select Bank</label>
                                         <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1">
@@ -374,6 +451,29 @@ export default function Wallets() {
                                                 >
                                                     <img src={bank.logo} alt={bank.name} className="h-10 w-auto object-contain" />
                                                     <span className="text-[10px] font-bold text-center truncate w-full">{bank.code}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {newWalletType === 'CREDIT_CARD' && (
+                                    <div className="space-y-1 col-span-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Card Network</label>
+                                        <div className="flex gap-2 p-1">
+                                            {CREDIT_CARD_TYPES.map(card => (
+                                                <button
+                                                    key={card.code}
+                                                    type="button"
+                                                    onClick={() => setSelectedCreditCardType(card.code)}
+                                                    className={cn(
+                                                        "flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl border transition-all h-20",
+                                                        selectedCreditCardType === card.code
+                                                            ? "border-[var(--primary)] bg-orange-50"
+                                                            : "border-gray-100 hover:bg-gray-50"
+                                                    )}
+                                                >
+                                                    <img src={card.logo} alt={card.name} className="h-8 w-auto object-contain" />
                                                 </button>
                                             ))}
                                         </div>
@@ -404,6 +504,9 @@ export default function Wallets() {
                                     />
                                 </div>
                             )}
+
+
+
 
                             <div className="flex gap-3 mt-4">
                                 <button
