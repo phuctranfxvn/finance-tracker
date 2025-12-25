@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "Account" ADD COLUMN     "creditCardType" TEXT;
+ALTER TABLE "Account" ADD COLUMN IF NOT EXISTS "creditCardType" TEXT;

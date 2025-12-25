@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "Account" ADD COLUMN     "showInQuickAdd" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Account" ADD COLUMN IF NOT EXISTS "showInQuickAdd" BOOLEAN NOT NULL DEFAULT true;
