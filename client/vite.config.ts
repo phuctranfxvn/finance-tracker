@@ -24,15 +24,8 @@ export default defineConfig({
       }
     }
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', '@hello-pangea/dnd'],
-          utils: ['axios', 'lucide-react', 'clsx', 'tailwind-merge', 'date-fns']
-        }
-      }
-    }
+  resolve: {
+    dedupe: ['react', 'react-dom']
   }
 
 })
