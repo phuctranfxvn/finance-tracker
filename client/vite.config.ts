@@ -23,6 +23,17 @@ export default defineConfig({
         secure: false,
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          utils: ['axios', 'lucide-react', 'clsx', 'tailwind-merge', 'date-fns'],
+          dnd: ['@hello-pangea/dnd']
+        }
+      }
+    }
   }
 
 })
