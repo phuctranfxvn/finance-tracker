@@ -1,10 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import clsx from "clsx";
 
 
 import MobileTabbar from "./MobileTabbar";
 
 export default function Layout() {
+    const { pathname } = useLocation();
+    const isMobileHome = pathname === '/';
+
     return (
         <div className="flex h-screen bg-[var(--background)] overflow-hidden">
             <Sidebar />
@@ -12,7 +16,10 @@ export default function Layout() {
 
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
 
-                <main className="flex-1 overflow-y-auto p-4 lg:p-8 pb-32 lg:pb-24 scrollbar-hide">
+                <main className={clsx(
+                    "flex-1 scrollbar-hide",
+                    isMobileHome ? "p-0 overflow-hidden" : "p-4 lg:p-8 pb-24 overflow-y-auto"
+                )}>
                     <Outlet />
                 </main>
 

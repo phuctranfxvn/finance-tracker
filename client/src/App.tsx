@@ -7,6 +7,7 @@ import Savings from "./pages/Savings";
 import Debts from "./pages/Debts";
 import Login from "./pages/Login";
 import Settings from "./pages/Settings";
+import QuickAddPage from "./pages/QuickAddPage";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 
@@ -31,7 +32,8 @@ function App() {
 
             <Route element={<RequireAuth />}>
               <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
+                <Route index element={<QuickAddPage />} />
+                <Route path="dashboard" element={<Dashboard />} />
                 <Route path="wallets" element={<Wallets />} />
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="savings" element={<Savings />} />

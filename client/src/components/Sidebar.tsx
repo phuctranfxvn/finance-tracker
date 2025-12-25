@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutGrid, List, Calendar, Settings, Wallet, UserMinus } from "lucide-react";
+import { LayoutGrid, List, Calendar, Settings, Wallet, UserMinus, Plus } from "lucide-react";
 import { cn } from "../lib/utils";
 
 
@@ -11,7 +11,8 @@ export default function Sidebar() {
     const { t } = useLanguage();
 
     const navItems = [
-        { icon: LayoutGrid, href: "/", label: "dashboard" },
+        { icon: Plus, href: "/", label: "quickAdd" },
+        { icon: LayoutGrid, href: "/dashboard", label: "dashboard" },
         { icon: Wallet, href: "/wallets", label: "wallets" },
         { icon: List, href: "/transactions", label: "transactions" },
         { icon: Calendar, href: "/savings", label: "savings" },
