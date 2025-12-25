@@ -321,7 +321,6 @@ export const translations = {
         loadingDashboard: "Đang tải bảng tin...",
         failedLoadData: "Tải dữ liệu thất bại",
         selectWallet: "Chọn Ví",
-        others: "Khác",
         seeMore: "Xem thêm",
         noSavings: "Chưa có khoản tiết kiệm nào.",
         noCategoriesInSettings: "Chưa có danh mục nào trong Cài đặt.",
