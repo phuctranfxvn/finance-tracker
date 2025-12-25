@@ -87,11 +87,11 @@ export default function Dashboard() {
     };
 
     if (loading) {
-        return <div className="h-full flex items-center justify-center text-gray-400">Loading dashboard...</div>;
+        return <div className="h-full flex items-center justify-center text-gray-400">{t('loadingDashboard')}</div>;
     }
 
     if (!stats) {
-        return <div className="h-full flex items-center justify-center text-red-400">Failed to load data</div>;
+        return <div className="h-full flex items-center justify-center text-red-400">{t('failedLoadData')}</div>;
     }
 
     const statCards = [
@@ -128,7 +128,7 @@ export default function Dashboard() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in-up">
                         <div className="p-4 border-b flex items-center justify-between bg-gray-50">
-                            <h3 className="font-bold text-lg text-gray-900">Select Wallet</h3>
+                            <h3 className="font-bold text-lg text-gray-900">{t('selectWallet')}</h3>
                             <button onClick={() => setShowOtherWalletsModal(false)} className="p-2 -mr-2 text-gray-500 hover:bg-gray-200 rounded-full transition-colors">
                                 <X size={20} />
                             </button>
@@ -240,7 +240,7 @@ export default function Dashboard() {
                         <div className="flex justify-between items-center mb-6 px-2">
                             <h3 className="font-bold text-lg text-[var(--text-primary)]">{t('recentTransactions')}</h3>
                             <Link to="/transactions" className="text-sm font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1">
-                                Xem thêm <ArrowRight size={14} />
+                                {t('seeMore')} <ArrowRight size={14} />
                             </Link>
                         </div>
                         <TransactionList showControls={false} limit={10} />

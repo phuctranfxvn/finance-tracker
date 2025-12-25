@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Search, Filter, Plus, TrendingUp, TrendingDown, Eye, EyeOff, PenLine } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Eye, EyeOff, PenLine } from "lucide-react";
 import { cn } from "../lib/utils";
 import TransactionModal from "./TransactionModal";
 import PasswordModal from "./PasswordModal";
@@ -145,9 +145,9 @@ export default function TransactionList({ className, limit = 20, showControls = 
             {/* Transactions List */}
             <div className="bg-white rounded-[2rem] p-3 sm:p-6 shadow-sm">
                 {loading ? (
-                    <div className="text-center text-gray-400 py-10">Loading transactions...</div>
+                    <div className="text-center text-gray-400 py-10">{t('loadingTransactions')}</div>
                 ) : filteredTransactions.length === 0 ? (
-                    <div className="text-center text-gray-400 py-10">No transactions found</div>
+                    <div className="text-center text-gray-400 py-10">{t('noTransactions')}</div>
                 ) : (
                     <div className="space-y-2 sm:space-y-4">
                         {filteredTransactions.map((tx) => {

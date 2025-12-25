@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ShieldCheck, X, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface PasswordModalProps {
     isOpen: boolean;
@@ -15,6 +16,7 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: PasswordMo
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const { token } = useAuth();
+    const { t } = useLanguage();
 
     if (!isOpen) return null;
 
@@ -35,10 +37,10 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: PasswordMo
                 onClose();
                 setPassword('');
             } else {
-                setError('Incorrect password');
+                setError(t('incorrectPassword'));
             }
         } catch (err) {
-            setError('Verification failed');
+            setError(t('verificationFailed'));
         } finally {
             setLoading(false);
         }
@@ -53,7 +55,7 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: PasswordMo
                             <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
                                 <ShieldCheck size={20} />
                             </div>
-                            <h3 className="font-bold text-lg">Verify Identity</h3>
+                            <h3 className="font-bold text-lg">{t('verifyIdentity')}</h3>
                         </div>
                         <button onClick={onClose} className="text-gray-400 hover:text-gray-900">
                             <X size={20} />
@@ -61,12 +63,12 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: PasswordMo
                     </div>
 
                     <p className="text-sm text-gray-500 mb-6">
-                        Please enter your current password to reveal hidden transaction details.
+                        {t('verifyIdentityMsg')}
                     </p>
 
                     <form onSubmit={handleSubmit}>
                         <div className="mb-6">
-                            <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Password</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase block mb-2">{t('passwordLabel')}</label>
                             <input
                                 type="password"
                                 value={password}
@@ -84,7 +86,7 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: PasswordMo
                                 onClick={onClose}
                                 className="flex-1 h-12 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition-colors"
                             >
-                                Cancel
+                                {t('cancel')}
                             </button>
                             <button
                                 type="submit"
@@ -95,7 +97,7 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: PasswordMo
                                 )}
                             >
                                 {loading && <Loader2 size={18} className="animate-spin" />}
-                                Confirm
+                                {t('confirm')}
                             </button>
                         </div>
                     </form>

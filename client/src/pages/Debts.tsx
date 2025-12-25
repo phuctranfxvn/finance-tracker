@@ -60,7 +60,7 @@ export default function Debts() {
             setIsModalOpen(false);
             fetchDebts();
             setName(""); setAmount(""); setDueDate("");
-        } catch (e) { alert("Failed"); }
+        } catch (e) { alert(t('failed')); }
     };
 
     const handlePay = async (e: React.FormEvent) => {
@@ -75,7 +75,7 @@ export default function Debts() {
             fetchDebts();
             setSelectedDebt(null);
             setPayAmount("");
-        } catch (e) { alert("Failed payment"); }
+        } catch (e) { alert(t('paymentFailed')); }
     };
 
     const openPayModal = (debt: Debt) => {
@@ -158,8 +158,8 @@ export default function Debts() {
                     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
                     <form onSubmit={handleCreate} className="bg-white rounded-[2rem] p-8 w-full max-w-md z-10 shadow-2xl flex flex-col gap-4">
                         <h3 className="text-xl font-bold mb-2">{t('addDebt')}</h3>
-                        <input required type="text" className="w-full h-12 px-4 rounded-xl bg-gray-50 mt-1 outline-none focus:bg-white border focus:border-red-500" value={name} onChange={e => setName(e.target.value)} placeholder="Title (e.g. Borrowed from Mom)" />
-                        <input required type="number" className="w-full h-12 px-4 rounded-xl bg-gray-50 mt-1 outline-none focus:bg-white border focus:border-red-500" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Amount" />
+                        <input required type="text" className="w-full h-12 px-4 rounded-xl bg-gray-50 mt-1 outline-none focus:bg-white border focus:border-red-500" value={name} onChange={e => setName(e.target.value)} placeholder={t('debtTitlePlaceholder')} />
+                        <input required type="number" className="w-full h-12 px-4 rounded-xl bg-gray-50 mt-1 outline-none focus:bg-white border focus:border-red-500" value={amount} onChange={e => setAmount(e.target.value)} placeholder={t('amountPlaceholder')} />
                         <input type="date" className="w-full h-12 px-4 rounded-xl bg-gray-50 mt-1 outline-none focus:bg-white border focus:border-red-500" value={dueDate} onChange={e => setDueDate(e.target.value)} />
                         <button type="submit" className="h-12 bg-red-500 text-white rounded-xl font-bold mt-2">{t('addDebt')}</button>
                     </form>

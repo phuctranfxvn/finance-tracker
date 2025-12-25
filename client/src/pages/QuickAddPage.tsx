@@ -23,6 +23,7 @@ export default function QuickAddPage() {
     // Privacy Logic
     const [showIncome, setShowIncome] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [showWalletPopup, setShowWalletPopup] = useState(false);
 
     // Derived State
     const selectedWallet = wallets.find(w => w.id === selectedWalletId);
@@ -81,7 +82,7 @@ export default function QuickAddPage() {
             setSelectedCategory(null);
         } catch (error) {
             console.error("Quick add failed", error);
-            alert("Failed to add transaction");
+            alert(t('failedToAddTransaction'));
         } finally {
             setIsSubmitting(false);
         }
@@ -126,16 +127,16 @@ export default function QuickAddPage() {
         ? categories.filter(c => c.type === transactionType)
         : transactionType === 'EXPENSE'
             ? [
-                { id: 'food', name: 'Food', icon: '🍔' },
-                { id: 'transport', name: 'Transport', icon: '🚕' },
-                { id: 'shopping', name: 'Shopping', icon: '🛍️' },
-                { id: 'entertainment', name: 'Fun', icon: '🎬' },
+                { id: 'food', name: t('catFood'), icon: '🍔' },
+                { id: 'transport', name: t('catTransport'), icon: '🚕' },
+                { id: 'shopping', name: t('catShopping'), icon: '🛍️' },
+                { id: 'entertainment', name: t('catEntertainment'), icon: '🎬' },
             ]
             : [
-                { id: 'salary', name: 'Salary', icon: '💰' },
-                { id: 'freelance', name: 'Freelance', icon: '💻' },
-                { id: 'gift', name: 'Gift', icon: '🎁' },
-                { id: 'investment', name: 'Invest', icon: '📈' },
+                { id: 'salary', name: t('catSalary'), icon: '💰' },
+                { id: 'freelance', name: t('catFreelance'), icon: '💻' },
+                { id: 'gift', name: t('catGift'), icon: '🎁' },
+                { id: 'investment', name: t('catInvestment'), icon: '📈' },
             ];
 
     return (
@@ -160,189 +161,405 @@ export default function QuickAddPage() {
                     transactionType === 'EXPENSE' ? "bg-orange-200" : "bg-green-200"
                 )}></div>
 
-                <div className="relative z-10 flex flex-col gap-4 justify-between items-start flex-1 max-w-md mx-auto w-full h-full">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-12 items-start flex-1 max-w-md lg:max-w-7xl mx-auto w-full h-full lg:p-8">
 
-                    {/* Top Row: Type Toggle */}
-                    <div className="w-full bg-white rounded-2xl p-1 flex shadow-sm shrink-0">
-                        <div className="relative flex-1 flex">
-                            <div className={clsx(
-                                "absolute top-0 bottom-0 w-1/2 rounded-xl shadow-md transition-all duration-300 ease-spring",
-                                transactionType === 'EXPENSE' ? "bg-orange-500 left-0" : "bg-green-500 left-1/2"
-                            )}></div>
-                            <button
-                                onClick={() => handleTransactionTypeChange('EXPENSE')}
-                                className={clsx("flex-1 py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'EXPENSE' ? "text-white" : "text-gray-500")}
-                            >
-                                <TrendingDown size={16} />
-                                {t('expense')}
-                            </button>
-                            <button
-                                onClick={() => handleTransactionTypeChange('INCOME')}
-                                className={clsx("flex-1 py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'INCOME' ? "text-white" : "text-gray-500")}
-                            >
-                                <TrendingUp size={16} />
-                                {t('income')}
-                            </button>
+                    {/* Left Column */}
+                    <div className="flex flex-col gap-4 lg:gap-6 lg:col-span-5 w-full">
+                        {/* Title - Desktop Only */}
+                        <div className="hidden lg:flex items-center gap-3 mb-2">
+                            <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-200">
+                                <TrendingDown size={28} />
+                            </div>
+                            <h2 className="text-3xl font-bold text-gray-800">{t('quickAdd')}</h2>
+                            <div className="ml-auto bg-gray-100 p-2 rounded-full text-gray-400">
+                                <Eye size={20} />
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Amount Input Card - Flexible height */}
-                    <div className="w-full bg-white rounded-3xl px-6 py-3 shadow-sm relative flex flex-col justify-center flex-[0.2] min-h-[80px]">
-                        <div className="flex justify-between items-center">
-                            <label className="text-[10px] font-bold text-orange-900/40 uppercase tracking-widest">{t('amount').toUpperCase()}</label>
-                            <button
-                                onClick={toggleIncomeVisibility}
-                                className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors"
-                            >
-                                {showIncome ? <EyeOff size={12} /> : <Eye size={12} />}
-                            </button>
-                        </div>
-                        <div className="flex items-baseline mt-1">
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                placeholder="0"
-                                value={quickAmount}
-                                onChange={(e) => {
-                                    const val = e.target.value.replace(/[^0-9.,]/g, '');
-                                    setQuickAmount(formatNumber(val.replace(/,/g, '')));
-                                }}
-                                className={clsx(
-                                    "w-full bg-transparent text-4xl font-black outline-none transition-all placeholder:text-gray-200",
-                                    transactionType === 'EXPENSE' ? "text-orange-500" : "text-green-500"
-                                )}
-                            />
-                            <span className={clsx("text-lg font-bold ml-2", transactionType === 'EXPENSE' ? "text-orange-500" : "text-green-500")}>{currencyLabel}</span>
-                        </div>
-                    </div>
-
-                    {/* Preset Chips - Moved Here */}
-                    <div className="flex gap-3 overflow-x-auto w-full hide-scrollbar">
-                        {presetAmounts.map(amount => (
-                            <button
-                                key={amount}
-                                onClick={() => setQuickAmount(formatNumber(amount))}
-                                className={clsx(
-                                    "px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap",
-                                    transactionType === 'EXPENSE'
-                                        ? "bg-orange-100/50 text-orange-800 hover:bg-orange-200/50"
-                                        : "bg-green-100/50 text-green-800 hover:bg-green-200/50"
-                                )}
-                            >
-                                {amount.toLocaleString()}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Wallets Section */}
-                    <div className="w-full">
-                        <label className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 block">{t('fromWallet')}</label>
-                        <div className="grid grid-cols-3 gap-3">
-                            {wallets.slice(0, 6).map(w => (
+                        {/* Top Row: Type Toggle (Order 1) */}
+                        <div className="w-full bg-white rounded-2xl p-1 flex shadow-sm shrink-0 order-1">
+                            <div className="relative flex-1 flex">
+                                <div className={clsx(
+                                    "absolute top-0 bottom-0 w-1/2 rounded-xl shadow-md transition-all duration-300 ease-spring",
+                                    transactionType === 'EXPENSE' ? "bg-orange-500 left-0" : "bg-green-500 left-1/2"
+                                )}></div>
                                 <button
-                                    key={w.id}
-                                    onClick={() => setSelectedWalletId(w.id)}
-                                    className={clsx(
-                                        "flex flex-col items-center gap-1 p-2 rounded-2xl border-2 transition-all relative bg-white",
-                                        selectedWalletId === w.id
-                                            ? (transactionType === 'EXPENSE' ? "border-orange-500 shadow-md bg-orange-50" : "border-green-500 shadow-md bg-green-50")
-                                            : "border-transparent shadow-sm"
-                                    )}
+                                    onClick={() => handleTransactionTypeChange('EXPENSE')}
+                                    className={clsx("flex-1 py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'EXPENSE' ? "text-white" : "text-gray-500")}
                                 >
-                                    <div className={clsx(
-                                        "w-8 h-8 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors bg-gray-50 text-gray-500",
-                                        selectedWalletId === w.id && (transactionType === 'EXPENSE' ? "bg-white text-orange-500" : "bg-white text-green-500")
-                                    )}>
-                                        {w.type === 'BANK' ? (
-                                            w.bankName ? (
-                                                <img
-                                                    src={VIETNAM_BANKS.find(b => b.code === w.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
-                                                    alt={w.bankName}
-                                                    className="w-full h-full object-contain p-1"
-                                                />
-                                            ) : <Landmark size={20} />
-                                        ) : w.type === 'CREDIT_CARD' ? (
-                                            w.creditCardType ? (
-                                                <img
-                                                    src={CREDIT_CARD_TYPES.find(c => c.code === w.creditCardType)?.logo}
-                                                    alt={w.creditCardType}
-                                                    className="w-full h-full object-contain p-1"
-                                                />
-                                            ) : <CreditCard size={20} />
-                                        ) : (
-                                            <WalletIcon size={20} />
+                                    <TrendingDown size={16} />
+                                    {t('expense')}
+                                </button>
+                                <button
+                                    onClick={() => handleTransactionTypeChange('INCOME')}
+                                    className={clsx("flex-1 py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'INCOME' ? "text-white" : "text-gray-500")}
+                                >
+                                    <TrendingUp size={16} />
+                                    {t('income')}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Wallets Section (Order 4 Mobile, Order 2 Desktop) */}
+                        <div className="w-full order-4 lg:order-2">
+                            <label className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 block">{t('fromWallet')}</label>
+
+                            {/* Mobile: 5 + Others */}
+                            <div className="grid grid-cols-3 gap-3 lg:hidden">
+                                {wallets.slice(0, 5).map(w => (
+                                    <button
+                                        key={w.id}
+                                        onClick={() => setSelectedWalletId(w.id)}
+                                        className={clsx(
+                                            "flex flex-col items-center gap-1 p-2 rounded-2xl border-2 transition-all relative bg-white group",
+                                            selectedWalletId === w.id
+                                                ? (transactionType === 'EXPENSE' ? "border-orange-500 shadow-md bg-orange-50" : "border-green-500 shadow-md bg-green-50")
+                                                : "border-transparent shadow-sm hover:border-gray-200"
                                         )}
-                                    </div>
-
-                                    <div className="text-[11px] font-bold text-center truncate w-full text-gray-700">
-                                        {w.name}
-                                    </div>
-
-                                    {selectedWalletId === w.id && (
+                                    >
                                         <div className={clsx(
-                                            "absolute top-3 right-3 w-2 h-2 rounded-full",
-                                            transactionType === 'EXPENSE' ? "bg-orange-500" : "bg-green-500"
-                                        )}></div>
-                                    )}
-                                </button>
-                            ))}
+                                            "w-8 h-8 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors bg-gray-50 text-gray-500",
+                                            selectedWalletId === w.id && (transactionType === 'EXPENSE' ? "bg-white text-orange-500" : "bg-white text-green-500")
+                                        )}>
+                                            {w.type === 'BANK' ? (
+                                                w.bankName ? (
+                                                    <img
+                                                        src={VIETNAM_BANKS.find(b => b.code === w.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
+                                                        alt={w.bankName}
+                                                        className="w-full h-full object-contain p-1"
+                                                    />
+                                                ) : <Landmark size={20} />
+                                            ) : w.type === 'CREDIT_CARD' ? (
+                                                w.creditCardType ? (
+                                                    <img
+                                                        src={CREDIT_CARD_TYPES.find(c => c.code === w.creditCardType)?.logo}
+                                                        alt={w.creditCardType}
+                                                        className="w-full h-full object-contain p-1"
+                                                    />
+                                                ) : <CreditCard size={20} />
+                                            ) : (
+                                                <WalletIcon size={20} />
+                                            )}
+                                        </div>
+
+                                        <div className="text-[11px] font-bold text-center truncate w-full text-gray-700">
+                                            {w.name}
+                                        </div>
+
+                                        {selectedWalletId === w.id && (
+                                            <div className={clsx(
+                                                "absolute top-3 right-3 w-2 h-2 rounded-full",
+                                                transactionType === 'EXPENSE' ? "bg-orange-500" : "bg-green-500"
+                                            )}></div>
+                                        )}
+                                    </button>
+                                ))}
+
+                                {/* 6th Block: Others / Selected Other (Mobile Only) */}
+                                {wallets.length > 5 && (
+                                    <button
+                                        onClick={() => setShowWalletPopup(true)}
+                                        className={clsx(
+                                            "flex flex-col items-center gap-1 p-2 rounded-2xl border-2 transition-all relative bg-white group",
+                                            (wallets.slice(5).find(w => w.id === selectedWalletId))
+                                                ? (transactionType === 'EXPENSE' ? "border-orange-500 shadow-md bg-orange-50" : "border-green-500 shadow-md bg-green-50")
+                                                : "border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                                        )}
+                                    >
+                                        {(() => {
+                                            const selectedOther = wallets.slice(5).find(w => w.id === selectedWalletId);
+                                            if (selectedOther) {
+                                                return (
+                                                    <>
+                                                        <div className={clsx(
+                                                            "w-8 h-8 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors bg-gray-50 text-gray-500",
+                                                            transactionType === 'EXPENSE' ? "bg-white text-orange-500" : "bg-white text-green-500"
+                                                        )}>
+                                                            {selectedOther.type === 'BANK' ? (
+                                                                selectedOther.bankName ? (
+                                                                    <img
+                                                                        src={VIETNAM_BANKS.find(b => b.code === selectedOther.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
+                                                                        alt={selectedOther.bankName}
+                                                                        className="w-full h-full object-contain p-1"
+                                                                    />
+                                                                ) : <Landmark size={20} />
+                                                            ) : selectedOther.type === 'CREDIT_CARD' ? (
+                                                                selectedOther.creditCardType ? (
+                                                                    <img
+                                                                        src={CREDIT_CARD_TYPES.find(c => c.code === selectedOther.creditCardType)?.logo}
+                                                                        alt={selectedOther.creditCardType}
+                                                                        className="w-full h-full object-contain p-1"
+                                                                    />
+                                                                ) : <CreditCard size={20} />
+                                                            ) : (
+                                                                <WalletIcon size={20} />
+                                                            )}
+                                                        </div>
+                                                        <div className="text-[11px] font-bold text-center truncate w-full text-gray-700">
+                                                            {selectedOther.name}
+                                                        </div>
+                                                        <div className={clsx(
+                                                            "absolute top-3 right-3 w-2 h-2 rounded-full",
+                                                            transactionType === 'EXPENSE' ? "bg-orange-500" : "bg-green-500"
+                                                        )}></div>
+                                                    </>
+                                                );
+                                            } else {
+                                                return (
+                                                    <>
+                                                        <div className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-400 bg-gray-50">
+                                                            <div className="flex gap-0.5">
+                                                                <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                                <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                                <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-[11px] font-bold text-center truncate w-full text-gray-400">
+                                                            {t('others')}
+                                                        </div>
+                                                    </>
+                                                );
+                                            }
+                                        })()}
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Desktop: All Wallets */}
+                            <div className="hidden lg:grid lg:grid-cols-4 gap-3">
+                                {wallets.map(w => (
+                                    <button
+                                        key={w.id}
+                                        onClick={() => setSelectedWalletId(w.id)}
+                                        className={clsx(
+                                            "flex flex-col items-center gap-1 p-3 rounded-2xl border-2 transition-all relative bg-white group",
+                                            selectedWalletId === w.id
+                                                ? (transactionType === 'EXPENSE' ? "border-orange-500 shadow-md bg-orange-50" : "border-green-500 shadow-md bg-green-50")
+                                                : "border-transparent shadow-sm hover:border-gray-200"
+                                        )}
+                                    >
+                                        <div className={clsx(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 transition-colors bg-gray-50 text-gray-500",
+                                            selectedWalletId === w.id && (transactionType === 'EXPENSE' ? "bg-white text-orange-500" : "bg-white text-green-500")
+                                        )}>
+                                            {w.type === 'BANK' ? (
+                                                w.bankName ? (
+                                                    <img
+                                                        src={VIETNAM_BANKS.find(b => b.code === w.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
+                                                        alt={w.bankName}
+                                                        className="w-full h-full object-contain p-1"
+                                                    />
+                                                ) : <Landmark size={20} />
+                                            ) : w.type === 'CREDIT_CARD' ? (
+                                                w.creditCardType ? (
+                                                    <img
+                                                        src={CREDIT_CARD_TYPES.find(c => c.code === w.creditCardType)?.logo}
+                                                        alt={w.creditCardType}
+                                                        className="w-full h-full object-contain p-1"
+                                                    />
+                                                ) : <CreditCard size={20} />
+                                            ) : (
+                                                <WalletIcon size={20} />
+                                            )}
+                                        </div>
+
+                                        <div className="text-xs font-bold text-center truncate w-full text-gray-800 group-hover:text-black">
+                                            {w.name}
+                                        </div>
+                                        <div className="text-[10px] font-medium text-gray-400">
+                                            {Number(w.balance).toLocaleString()} ₫
+                                        </div>
+
+                                        {selectedWalletId === w.id && (
+                                            <div className={clsx(
+                                                "absolute top-2 right-2 w-2.5 h-2.5 rounded-full ring-2 ring-white",
+                                                transactionType === 'EXPENSE' ? "bg-orange-500" : "bg-green-500"
+                                            )}></div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
 
+                        {/* Wallet Selection Popup */}
+                        {showWalletPopup && (
+                            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                                <div className="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
+                                    <div className="p-6 pb-2 shrink-0 flex justify-between items-center">
+                                        <h3 className="text-lg font-bold">{t('selectWallet')}</h3>
+                                        <button
+                                            onClick={() => setShowWalletPopup(false)}
+                                            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                                        >
+                                            <TrendingDown size={16} className="rotate-45" /> {/* Close Icon */}
+                                        </button>
+                                    </div>
+                                    <div className="p-4 overflow-y-auto">
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {wallets.slice(5).map(w => (
+                                                <button
+                                                    key={w.id}
+                                                    onClick={() => {
+                                                        setSelectedWalletId(w.id);
+                                                        setShowWalletPopup(false);
+                                                    }}
+                                                    className={clsx(
+                                                        "flex items-center gap-4 p-4 rounded-2xl border transition-all text-left",
+                                                        selectedWalletId === w.id
+                                                            ? "bg-gray-900 text-white border-transparent"
+                                                            : "bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                                                    )}
+                                                >
+                                                    <div className={clsx(
+                                                        "w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 transition-colors",
+                                                        selectedWalletId === w.id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+                                                    )}>
+                                                        {w.type === 'BANK' ? (
+                                                            w.bankName ? (
+                                                                <img
+                                                                    src={VIETNAM_BANKS.find(b => b.code === w.bankName)?.logo || "https://api.vietqr.io/img/VCB.png"}
+                                                                    alt={w.bankName}
+                                                                    className="w-full h-full object-contain p-1"
+                                                                />
+                                                            ) : <Landmark size={20} />
+                                                        ) : w.type === 'CREDIT_CARD' ? (
+                                                            w.creditCardType ? (
+                                                                <img
+                                                                    src={CREDIT_CARD_TYPES.find(c => c.code === w.creditCardType)?.logo}
+                                                                    alt={w.creditCardType}
+                                                                    className="w-full h-full object-contain p-1"
+                                                                />
+                                                            ) : <CreditCard size={20} />
+                                                        ) : (
+                                                            <WalletIcon size={20} />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-sm">{w.name}</div>
+                                                        <div className={clsx("text-xs font-medium", selectedWalletId === w.id ? "text-gray-300" : "text-gray-400")}>
+                                                            {Number(w.balance).toLocaleString()} {w.currency}
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-
-                    {/* Categories Section - Takes most remaining space */}
-                    <div className="w-full flex-1 min-h-0 flex flex-col">
-                        <label className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 block">{t('selectCategory')}</label>
-                        <div className="grid grid-cols-4 gap-2">
-                            {displayCategories.map((cat) => (
+                        {/* Amount Input (Order 2 Mobile, Order 3 Desktop) */}
+                        <div className="w-full bg-white rounded-3xl lg:rounded-[2rem] px-6 py-2 lg:px-6 lg:py-6 shadow-sm relative flex flex-col justify-center flex-[0.15] min-h-[65px] lg:min-h-[110px] order-2 lg:order-3">
+                            <div className="flex justify-between items-center mb-1 lg:mb-2">
+                                <label className="text-[10px] lg:text-xs font-bold text-orange-900/40 lg:text-gray-300 uppercase tracking-widest">{t('amount').toUpperCase()}</label>
+                                {/* Restore Eye Icon for Mobile Privacy? Old layout had it. */}
                                 <button
-                                    key={cat.id}
-                                    onClick={() => setSelectedCategory(cat.name)}
+                                    onClick={toggleIncomeVisibility}
+                                    className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors lg:hidden"
+                                >
+                                    {showIncome ? <EyeOff size={12} /> : <Eye size={12} />}
+                                </button>
+                            </div>
+
+                            <div className="flex items-baseline mt-1">
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder="0"
+                                    value={quickAmount}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^0-9.,]/g, '');
+                                        setQuickAmount(formatNumber(val.replace(/,/g, '')));
+                                    }}
                                     className={clsx(
-                                        "flex flex-col items-center justify-center gap-0.5 p-1 rounded-xl transition-all duration-200 bg-white shadow-sm border-2 h-16",
-                                        selectedCategory === cat.name
-                                            ? (transactionType === 'EXPENSE'
-                                                ? "border-transparent bg-white shadow-md ring-2 ring-orange-500"
-                                                : "border-transparent bg-white shadow-md ring-2 ring-green-500")
-                                            : "border-transparent hover:bg-gray-50"
+                                        "w-full bg-transparent text-4xl lg:text-6xl font-black outline-none transition-all placeholder:text-gray-200 lg:placeholder:text-gray-100",
+                                        transactionType === 'EXPENSE' ? "text-orange-500" : "text-green-500"
+                                    )}
+                                />
+                                <span className={clsx("text-lg lg:text-2xl font-bold ml-2", transactionType === 'EXPENSE' ? "text-orange-500 lg:text-gray-300" : "text-green-500 lg:text-gray-300")}>{currencyLabel}</span>
+                            </div>
+                        </div>
+
+                        {/* Preset Chips (Order 3 Mobile, Order 4 Desktop) */}
+                        <div className="flex gap-3 overflow-x-auto w-full hide-scrollbar order-3 lg:order-4 pb-2 lg:pb-0">
+                            {presetAmounts.map(amount => (
+                                <button
+                                    key={amount}
+                                    onClick={() => setQuickAmount(formatNumber(amount))}
+                                    className={clsx(
+                                        "px-4 py-2 lg:px-5 lg:py-3 rounded-xl lg:rounded-2xl text-xs lg:text-sm font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm border",
+                                        transactionType === 'EXPENSE'
+                                            ? "bg-orange-100/50 lg:bg-orange-50 border-transparent lg:border-orange-100 text-orange-800 lg:text-orange-700 hover:bg-orange-200/50 lg:hover:bg-orange-100"
+                                            : "bg-green-100/50 lg:bg-green-50 border-transparent lg:border-green-100 text-green-800 lg:text-green-700 hover:bg-green-200/50 lg:hover:bg-green-100"
                                     )}
                                 >
-                                    <div className="text-xl">
-                                        {cat.icon}
-                                    </div>
-                                    <span className={clsx(
-                                        "text-[10px] font-bold text-center truncate w-full",
-                                        selectedCategory === cat.name
-                                            ? (transactionType === 'EXPENSE' ? "text-orange-600" : "text-green-600")
-                                            : "text-gray-500"
-                                    )}>{cat.name}</span>
+                                    {amount.toLocaleString()}
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Submit Button - Sticky Bottom of Container */}
-                    <div className="w-full mt-auto">
-                        <button
-                            onClick={handleQuickAdd}
-                            disabled={isSubmitting || !isValid}
-                            className={clsx(
-                                "h-16 rounded-3xl font-bold transition-all active:scale-95 flex items-center justify-center gap-3 w-full text-lg text-white",
-                                transactionType === 'EXPENSE'
-                                    ? (isValid && !isSubmitting ? "bg-orange-500 hover:bg-orange-600" : "bg-orange-200")
-                                    : (isValid && !isSubmitting ? "bg-green-500 hover:bg-green-600" : "bg-green-200")
-                            )}
-                        >
-                            <span className="drop-shadow-sm">
-                                {isSubmitting ? "Đang lưu..." : (transactionType === 'EXPENSE' ? "Xác nhận chi" : "Xác nhận thu")}
-                            </span>
-                            {!isSubmitting && (
-                                <div className="bg-white/30 w-8 h-8 rounded-full flex items-center justify-center">
-                                    <TrendingDown className={clsx("w-4 h-4 text-white", transactionType === 'INCOME' && "rotate-180")} />
-                                </div>
-                            )}
-                        </button>
+                    {/* Right Column (Desktop) / Bottom Stack (Mobile) */}
+                    <div className="flex flex-col h-full lg:col-span-7 relative">
+                        {/* Decorative Background for Desktop */}
+                        <div className="absolute -top-6 -right-6 w-64 h-32 bg-[#FFE4C4] rounded-bl-[4rem] -z-10 hidden lg:block opacity-50"></div>
+                        <div className="absolute -top-4 -right-4 px-6 py-2 bg-[#FFE4C4] rounded-full hidden lg:block">
+                            <span className="text-xs font-bold text-orange-800/60 uppercase tracking-widest">{t('selectCategory')}</span>
+                        </div>
+
+                        {/* Categories Grid */}
+                        <div className="w-full flex-1 min-h-0 flex flex-col order-5 lg:order-1 lg:mt-12">
+                            <label className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 block lg:hidden">{t('selectCategory')}</label>
+                            <div className="grid grid-cols-4 gap-2 lg:gap-3 overflow-y-auto hide-scrollbar max-h-[400px] lg:max-h-none p-1">
+                                {displayCategories.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => setSelectedCategory(cat.name)}
+                                        className={clsx(
+                                            "aspect-none h-16 lg:aspect-auto lg:h-auto lg:min-h-[100px] flex flex-col items-center justify-center gap-0.5 lg:gap-2 p-1 lg:p-3 rounded-xl transition-all duration-200 bg-white shadow-sm border-2",
+                                            selectedCategory === cat.name
+                                                ? (transactionType === 'EXPENSE'
+                                                    ? "border-orange-500 shadow-md bg-orange-50 lg:bg-white"
+                                                    : "border-green-500 shadow-md bg-green-50 lg:bg-white")
+                                                : "border-transparent hover:bg-gray-50 lg:hover:border-gray-200 lg:hover:shadow-md"
+                                        )}
+                                    >
+                                        <div className="text-xl lg:text-2xl lg:filter lg:drop-shadow-sm">
+                                            {cat.icon}
+                                        </div>
+                                        <span className={clsx(
+                                            "text-[10px] lg:text-xs font-bold text-center truncate w-full",
+                                            selectedCategory === cat.name
+                                                ? (transactionType === 'EXPENSE' ? "text-orange-600" : "text-green-600")
+                                                : "text-gray-500 lg:text-gray-600"
+                                        )}>{cat.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <div className="w-full mt-auto pt-3 lg:mt-6 order-6 lg:order-2 lg:flex lg:justify-end">
+                            <button
+                                onClick={handleQuickAdd}
+                                disabled={isSubmitting || !isValid}
+                                className={clsx(
+                                    "h-16 rounded-3xl lg:rounded-[2rem] font-bold transition-all active:scale-95 flex items-center justify-center gap-3 w-full lg:w-auto lg:px-12 text-lg text-white shadow-none lg:shadow-xl lg:shadow-orange-200/50",
+                                    transactionType === 'EXPENSE'
+                                        ? (isValid && !isSubmitting ? "bg-orange-500 lg:bg-orange-400 hover:bg-orange-600 lg:hover:bg-orange-500" : "bg-orange-200")
+                                        : (isValid && !isSubmitting ? "bg-green-500 hover:bg-green-600" : "bg-green-200")
+                                )}
+                            >
+                                <span className="drop-shadow-sm">
+                                    {isSubmitting ? t('saving') : (transactionType === 'EXPENSE' ? t('confirmExpense') : t('confirmIncome'))}
+                                </span>
+                                {!isSubmitting && (
+                                    <div className="bg-white/30 lg:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center">
+                                        <TrendingDown className={clsx("w-4 h-4 lg:w-5 lg:h-5 text-white", transactionType === 'INCOME' && "rotate-180")} />
+                                    </div>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -355,7 +572,7 @@ export default function QuickAddPage() {
                         <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
                             <TrendingDown className="w-4 h-4 text-white rotate-180" /> {/* Mimic checkmark or just up arrow */}
                         </div>
-                        <span className="font-bold">Đã lưu giao dịch!</span>
+                        <span className="font-bold">{t('transactionSaved')}</span>
                     </div>
                 </div>
             </div>

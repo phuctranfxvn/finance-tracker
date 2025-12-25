@@ -224,7 +224,7 @@ export default function Savings() {
                                     </span>
                                 </h3>
                                 <div className="font-bold text-gray-900">
-                                    Total: {totalAmount.toLocaleString()} ₫
+                                    {t('totalLabel')} {totalAmount.toLocaleString()} ₫
                                 </div>
                             </div>
 
@@ -256,7 +256,7 @@ export default function Savings() {
                                             </div>
                                             <div className="flex justify-between items-end mt-1">
                                                 <div className="text-xs text-pink-500 font-bold">
-                                                    +{Number(saving.interestRate)}% / year
+                                                    +{Number(saving.interestRate)}% {t('perYear')}
                                                 </div>
                                                 {saving.endDate && (
                                                     <div className="text-right">
@@ -313,7 +313,7 @@ export default function Savings() {
                 {savings.length === 0 && (
                     <div className="col-span-full text-center py-12 bg-white rounded-[2rem] border border-dashed border-gray-200">
                         <PiggyBank size={48} className="mx-auto text-gray-200 mb-4" />
-                        <p className="text-gray-400 font-medium">No savings found.</p>
+                        <p className="text-gray-400 font-medium">{t('noSavings')}</p>
                     </div>
                 )}
             </div>
@@ -347,7 +347,7 @@ export default function Savings() {
                                         <span>{cat.name}</span>
                                     </button>
                                 ))}
-                                {categories.length === 0 && <p className="text-xs text-gray-400">No categories found in Settings.</p>}
+                                {categories.length === 0 && <p className="text-xs text-gray-400">{t('noCategoriesInSettings')}</p>}
                             </div>
                         </div>
 
@@ -468,7 +468,7 @@ export default function Savings() {
                                     onClick={confirmModal.onConfirm}
                                     className="flex-1 py-3 bg-black text-white rounded-xl font-bold hover:bg-gray-800 transition-colors"
                                 >
-                                    OK
+                                    {t('ok')}
                                 </button>
                             </div>
                         </div>

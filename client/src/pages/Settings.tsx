@@ -17,6 +17,19 @@ export default function Settings() {
     const [defaultWalletId, setDefaultWalletId] = useState<string>("");
     const [requirePassword, setRequirePassword] = useState(false);
 
+    const [showVerifyModal, setShowVerifyModal] = useState(false);
+    const [verifyPassword, setVerifyPassword] = useState("");
+    const [pendingToggle, setPendingToggle] = useState<boolean | null>(null);
+    const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+    const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => setToast(null), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
+
     useEffect(() => {
         if (user?.preferences?.quick_amounts) {
             setQuickAmounts(user.preferences.quick_amounts);
@@ -32,9 +45,32 @@ export default function Settings() {
 
     }, [user]);
 
-    const handleTogglePrivacy = async (checked: boolean) => {
-        setRequirePassword(checked);
-        await savePreferences({ requirePasswordForIncome: checked });
+    const handleTogglePrivacy = (checked: boolean) => {
+        setPendingToggle(checked);
+        setVerifyPassword("");
+        setShowVerifyModal(true);
+    };
+
+    const handleVerifySubmit = async () => {
+        if (!verifyPassword) return;
+        try {
+            const res = await axios.post('/api/auth/verify-password', { password: verifyPassword }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.data.success) {
+                if (pendingToggle !== null) {
+                    setRequirePassword(pendingToggle);
+                    await savePreferences({ requirePasswordForIncome: pendingToggle });
+                }
+                setShowVerifyModal(false);
+            } else {
+                setToast({ message: t('incorrectPassword'), type: 'error' });
+            }
+        } catch (error) {
+            console.error(error);
+            setToast({ message: t('verificationFailed'), type: 'error' });
+        }
     };
 
     useEffect(() => {
@@ -77,7 +113,7 @@ export default function Settings() {
 
         } catch (error) {
             console.error("Failed to save settings", error);
-            alert(t('failedToSave'));
+            setToast({ message: t('failedToSave'), type: 'error' });
         } finally {
             setSaving(false);
         }
@@ -86,7 +122,7 @@ export default function Settings() {
     const handleAdd = () => {
         const val = Number(newAmount);
         if (!val || val <= 0) return;
-        if (quickAmounts.includes(val)) return alert("Amount already exists");
+        if (quickAmounts.includes(val)) return alert(t('amountExists'));
 
         const next = [...quickAmounts, val].sort((a, b) => a - b);
         saveAmounts(next);
@@ -143,29 +179,35 @@ export default function Settings() {
             });
 
             if (verifyRes.data.verified) {
-                alert('Passkey registered successfully!');
+                setToast({ message: t('passkeyRegistered'), type: 'success' });
                 // Refresh list
                 const meRes = await axios.get("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
                 setPasskeys(meRes.data.passkeys || []);
             }
         } catch (error) {
             console.error(error);
-            alert('Failed to register passkey');
+            setToast({ message: t('passkeyRegisterFail'), type: 'error' });
         }
     };
 
-    const handleDeletePasskey = async (id: string) => {
-        if (!confirm("Are you sure you want to remove this passkey?")) return;
+    const handleDeletePasskey = (id: string) => {
+        setDeleteConfirmationId(id);
+    };
+
+    const proceedDeletePasskey = async () => {
+        if (!deleteConfirmationId) return;
         try {
-            await axios.delete(`/api/auth/passkeys/${id}`, {
+            await axios.delete(`/api/auth/passkeys/${deleteConfirmationId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setPasskeys(prev => prev.filter(p => p.id !== id));
+            setPasskeys(prev => prev.filter(p => p.id !== deleteConfirmationId));
+            setDeleteConfirmationId(null);
         } catch (err) {
             console.error(err);
-            alert("Failed to delete passkey");
+            setToast({ message: t('passkeyDeleteFail'), type: 'error' });
         }
     };
+
 
     return (
         <div className="flex flex-col gap-8">
@@ -270,7 +312,7 @@ export default function Settings() {
                             </span>
                         </button>
                     ))}
-                    {wallets.length === 0 && <p className="text-gray-400 italic">No wallets found.</p>}
+                    {wallets.length === 0 && <p className="text-gray-400 italic">{t('noWallets')}</p>}
                 </div>
             </div>
 
@@ -299,44 +341,46 @@ export default function Settings() {
                     </label>
                 </div>
 
-                <div className="flex justify-between items-center mb-4">
-                    <div>
-                        <h3 className="font-bold text-gray-900 mb-2">Passkeys</h3>
-                        <p className="text-sm text-gray-500">Use your fingerprint or face ID to log in securely.</p>
+                <div className="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 className="font-bold text-gray-900 mb-1">{t('passkeys')}</h3>
+                            <p className="text-sm text-gray-500">{t('passkeyDesc')}</p>
+                        </div>
+                        <button
+                            onClick={handleRegisterPasskey}
+                            className="px-4 py-2 bg-black text-white rounded-xl font-bold text-xs hover:bg-gray-800 transition-colors flex items-center gap-2"
+                        >
+                            <Plus size={14} />
+                            {t('addPasskey')}
+                        </button>
                     </div>
-                    <button
-                        onClick={handleRegisterPasskey}
-                        className="px-4 py-2 bg-black text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
-                        <Plus size={16} />
-                        Add Passkey
-                    </button>
-                </div>
 
-                {passkeys.length > 0 ? (
-                    <div className="space-y-3">
-                        {passkeys.map((p: any) => (
-                            <div key={p.id} className="flex justify-between items-center bg-gray-50 border border-gray-100 p-4 rounded-xl">
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-gray-800 text-sm">Passkey</span>
-                                    <span className="text-xs text-gray-400">Created: {new Date(p.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <button
-                                    onClick={() => handleDeletePasskey(p.id)}
-                                    className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                                >
-                                    <div className="flex items-center gap-1 text-xs font-bold">
-                                        <X size={14} /> Remove
+                    {passkeys.length > 0 ? (
+                        <div className="space-y-3">
+                            {passkeys.map((p: any) => (
+                                <div key={p.id} className="flex justify-between items-center bg-white border border-gray-200 p-3 rounded-xl shadow-sm">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-gray-800 text-sm">Passkey</span>
+                                        <span className="text-[10px] text-gray-400">{t('passkeyCreated')}: {new Date(p.createdAt).toLocaleDateString()}</span>
                                     </div>
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <p className="text-sm text-gray-400">No passkeys registered yet.</p>
-                    </div>
-                )}
+                                    <button
+                                        onClick={() => handleDeletePasskey(p.id)}
+                                        className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1 text-[10px] font-bold">
+                                            <X size={12} /> {t('remove')}
+                                        </div>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-6 bg-white rounded-xl border border-dashed border-gray-200">
+                            <p className="text-sm text-gray-400">{t('noPasskeys')}</p>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Category Manager */}
@@ -362,6 +406,78 @@ export default function Settings() {
                     Version 1.0.0
                 </p>
             </div>
-        </div>
+
+            {/* Password Verification Modal */}
+            {showVerifyModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{t('verifyPassword')}</h3>
+                        <p className="text-sm text-gray-500 mb-6">{t('verifyPasswordDesc')}</p>
+
+                        <input
+                            type="password"
+                            autoFocus
+                            placeholder={t('currentPassword')}
+                            value={verifyPassword}
+                            onChange={(e) => setVerifyPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleVerifySubmit()}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold mb-6 focus:outline-none focus:border-black transition-colors"
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowVerifyModal(false)}
+                                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-colors"
+                            >
+                                {t('cancel')}
+                            </button>
+                            <button
+                                onClick={handleVerifySubmit}
+                                disabled={!verifyPassword}
+                                className="flex-1 py-3 bg-black hover:bg-gray-800 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                            >
+                                {t('confirm')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmationId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{t('removePasskeyTitle')}</h3>
+                        <p className="text-sm text-gray-500 mb-6">{t('removePasskeyMsg')}</p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteConfirmationId(null)}
+                                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-colors"
+                            >
+                                {t('cancel')}
+                            </button>
+                            <button
+                                onClick={proceedDeletePasskey}
+                                className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors"
+                            >
+                                {t('remove')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast Notification */}
+            {toast && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className={`px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 font-bold text-sm ${toast.type === 'success' ? 'bg-black text-white' : 'bg-red-500 text-white'
+                        }`}>
+                        {toast.type === 'success' ? <div className="w-2 h-2 rounded-full bg-green-400"></div> : <X size={16} />}
+                        {toast.message}
+                    </div>
+                </div>
+            )}
+        </div >
     );
 }
