@@ -161,7 +161,7 @@ export default function QuickAddPage() {
                     transactionType === 'EXPENSE' ? "bg-orange-200" : "bg-green-200"
                 )}></div>
 
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-12 items-start flex-1 max-w-md lg:max-w-7xl mx-auto w-full h-full lg:p-8">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-12 items-start flex-1 max-w-md lg:max-w-7xl mx-auto w-full h-full lg:p-8">
 
                     {/* Left Column */}
                     <div className="flex flex-col gap-4 lg:gap-6 lg:col-span-5 w-full">
@@ -185,14 +185,14 @@ export default function QuickAddPage() {
                                 )}></div>
                                 <button
                                     onClick={() => handleTransactionTypeChange('EXPENSE')}
-                                    className={clsx("flex-1 py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'EXPENSE' ? "text-white" : "text-gray-500")}
+                                    className={clsx("flex-1 py-2 lg:py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'EXPENSE' ? "text-white" : "text-gray-500")}
                                 >
                                     <TrendingDown size={16} />
                                     {t('expense')}
                                 </button>
                                 <button
                                     onClick={() => handleTransactionTypeChange('INCOME')}
-                                    className={clsx("flex-1 py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'INCOME' ? "text-white" : "text-gray-500")}
+                                    className={clsx("flex-1 py-2 lg:py-3 text-sm font-bold z-10 transition-colors flex items-center justify-center gap-2", transactionType === 'INCOME' ? "text-white" : "text-gray-500")}
                                 >
                                     <TrendingUp size={16} />
                                     {t('income')}
@@ -205,7 +205,7 @@ export default function QuickAddPage() {
                             <label className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 block">{t('fromWallet')}</label>
 
                             {/* Mobile: 5 + Others */}
-                            <div className="grid grid-cols-3 gap-3 lg:hidden">
+                            <div className="grid grid-cols-3 gap-2 lg:hidden">
                                 {wallets.slice(0, 5).map(w => (
                                     <button
                                         key={w.id}
@@ -449,7 +449,7 @@ export default function QuickAddPage() {
                         )}
 
                         {/* Amount Input (Order 2 Mobile, Order 3 Desktop) */}
-                        <div className="w-full bg-white rounded-3xl lg:rounded-[2rem] px-6 py-2 lg:px-6 lg:py-6 shadow-sm relative flex flex-col justify-center flex-[0.15] min-h-[65px] lg:min-h-[110px] order-2 lg:order-3">
+                        <div className="w-full bg-white rounded-3xl lg:rounded-[2rem] px-6 py-2 lg:px-6 lg:py-6 shadow-sm relative flex flex-col justify-center flex-[0.15] min-h-[55px] lg:min-h-[110px] order-2 lg:order-3">
                             <div className="flex justify-between items-center mb-1 lg:mb-2">
                                 <label className="text-[10px] lg:text-xs font-bold text-orange-900/40 lg:text-gray-300 uppercase tracking-widest">{t('amount').toUpperCase()}</label>
                                 {/* Restore Eye Icon for Mobile Privacy? Old layout had it. */}
@@ -481,13 +481,13 @@ export default function QuickAddPage() {
                         </div>
 
                         {/* Preset Chips (Order 3 Mobile, Order 4 Desktop) */}
-                        <div className="flex gap-3 overflow-x-auto w-full hide-scrollbar order-3 lg:order-4 pb-2 lg:pb-0">
+                        <div className="flex gap-2 overflow-x-auto w-full hide-scrollbar order-3 lg:order-4 pb-1 lg:pb-0">
                             {presetAmounts.map(amount => (
                                 <button
                                     key={amount}
                                     onClick={() => setQuickAmount(formatNumber(amount))}
                                     className={clsx(
-                                        "px-4 py-2 lg:px-5 lg:py-3 rounded-xl lg:rounded-2xl text-xs lg:text-sm font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm border",
+                                        "px-3 py-1.5 lg:px-5 lg:py-3 rounded-xl lg:rounded-2xl text-xs lg:text-sm font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm border",
                                         transactionType === 'EXPENSE'
                                             ? "bg-orange-100/50 lg:bg-orange-50 border-transparent lg:border-orange-100 text-orange-800 lg:text-orange-700 hover:bg-orange-200/50 lg:hover:bg-orange-100"
                                             : "bg-green-100/50 lg:bg-green-50 border-transparent lg:border-green-100 text-green-800 lg:text-green-700 hover:bg-green-200/50 lg:hover:bg-green-100"
@@ -516,7 +516,7 @@ export default function QuickAddPage() {
                                         key={cat.id}
                                         onClick={() => setSelectedCategory(cat.name)}
                                         className={clsx(
-                                            "aspect-none h-16 lg:aspect-auto lg:h-auto lg:min-h-[100px] flex flex-col items-center justify-center gap-0.5 lg:gap-2 p-1 lg:p-3 rounded-xl transition-all duration-200 bg-white shadow-sm border-2",
+                                            "aspect-none h-14 lg:aspect-auto lg:h-auto lg:min-h-[100px] flex flex-col items-center justify-center gap-0.5 lg:gap-2 p-1 lg:p-3 rounded-xl transition-all duration-200 bg-white shadow-sm border-2",
                                             selectedCategory === cat.name
                                                 ? (transactionType === 'EXPENSE'
                                                     ? "border-orange-500 shadow-md bg-orange-50 lg:bg-white"
@@ -539,7 +539,7 @@ export default function QuickAddPage() {
                         </div>
 
                         {/* Submit Button */}
-                        <div className="w-full mt-auto pt-3 lg:mt-6 order-6 lg:order-2 lg:flex lg:justify-end">
+                        <div className="w-full mt-auto pt-2 lg:mt-6 order-6 lg:order-2 lg:flex lg:justify-end">
                             <button
                                 onClick={handleQuickAdd}
                                 disabled={isSubmitting || !isValid}
