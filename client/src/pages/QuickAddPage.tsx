@@ -38,13 +38,8 @@ export default function QuickAddPage() {
         }).then(res => {
             setWallets(res.data);
             if (res.data.length > 0) {
-                // Default to preference if available, else first wallet
-                if (user?.preferences?.defaultWalletId) {
-                    const found = res.data.find((w: any) => w.id === user.preferences.defaultWalletId);
-                    setSelectedWalletId(found ? found.id : res.data[0].id);
-                } else {
-                    setSelectedWalletId(res.data[0].id);
-                }
+                // Default to first wallet (highest priority)
+                setSelectedWalletId(res.data[0].id);
             }
         }).catch(console.error);
     }, [user, token]);

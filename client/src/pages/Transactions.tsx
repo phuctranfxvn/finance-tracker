@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Search, Filter, Plus, TrendingUp, TrendingDown, Eye, EyeOff, PenLine } from "lucide-react";
+import { Search, Filter, Plus, TrendingUp, TrendingDown, Eye, EyeOff, PenLine, ArrowRightLeft } from "lucide-react";
 import { cn } from "../lib/utils";
 import TransactionModal from "../components/TransactionModal";
 import PasswordModal from "../components/PasswordModal";
@@ -11,7 +11,7 @@ import { useLanguage } from "../context/LanguageContext";
 interface Transaction {
     id: string;
     amount: number;
-    type: "INCOME" | "EXPENSE";
+    type: "INCOME" | "EXPENSE" | "TRANSFER";
     category: string;
     note?: string;
     date: string;
@@ -166,9 +166,13 @@ export default function Transactions() {
                                 <div key={tx.id} className="relative flex items-start gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-gray-50 rounded-2xl transition-colors border border-transparent hover:border-gray-100 group">
                                     <div className={cn(
                                         "w-12 h-12 rounded-full flex items-center justify-center shrink-0 mt-1",
-                                        tx.type === 'INCOME' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                                        tx.type === 'INCOME' ? "bg-green-100 text-green-600" :
+                                            tx.type === 'TRANSFER' ? (
+                                                tx.category === 'Transfer In' ? "bg-teal-100 text-teal-600" : "bg-rose-100 text-rose-600"
+                                            ) : "bg-red-100 text-red-600"
                                     )}>
-                                        {tx.type === 'INCOME' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                        {tx.type === 'INCOME' ? <TrendingUp size={20} /> :
+                                            tx.type === 'TRANSFER' ? <ArrowRightLeft size={20} /> : <TrendingDown size={20} />}
                                     </div>
 
                                     <div className="flex-1 min-w-0 pt-0.5 pr-8 sm:pr-0">
@@ -183,11 +187,14 @@ export default function Transactions() {
 
                                     <div className={cn(
                                         "text-lg font-bold flex items-center justify-end whitespace-nowrap pt-0.5 shrink-0",
-                                        tx.type === 'INCOME' ? "text-green-600" : "text-red-600"
+                                        tx.type === 'INCOME' ? "text-green-600" :
+                                            tx.type === 'TRANSFER' ? (
+                                                tx.category === 'Transfer In' ? "text-teal-600" : "text-rose-600"
+                                            ) : "text-red-600"
                                     )}>
                                         {isMasked ? "******" : (
                                             <>
-                                                {tx.type === 'INCOME' ? '+' : '-'}{Number(tx.amount).toLocaleString()}
+                                                {tx.type === 'INCOME' || (tx.type === 'TRANSFER' && tx.category === 'Transfer In') ? '+' : '-'}{Number(tx.amount).toLocaleString()}
                                             </>
                                         )}
                                     </div>

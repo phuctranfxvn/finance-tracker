@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wallet as WalletIcon, TrendingUp, TrendingDown, PiggyBank, Briefcase, Eye, EyeOff, Landmark, CreditCard, X, ArrowRight } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, PiggyBank, Briefcase, Eye, EyeOff, Landmark, CreditCard, X, ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import clsx from "clsx";
 import axios from "axios";
@@ -14,6 +14,9 @@ interface DashboardStats {
     totalExpense: number;
     recentTransactions: any[];
     spendingByCategory: Record<string, number>;
+    budget?: {
+        items: { category: string; amount: number | string }[];
+    };
 }
 
 export default function Dashboard() {
@@ -28,7 +31,16 @@ export default function Dashboard() {
     const [showIncome, setShowIncome] = useState(false);
     const [showOtherWalletsModal, setShowOtherWalletsModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
-
+    // Period Logic
+    const [selectedPeriod, setSelectedPeriod] = useState("this_month");
+    const periods = [
+        { value: "this_month", label: t('thisMonth') || "This Month" },
+        { value: "last_month", label: t('lastMonth') || "Last Month" },
+        { value: "month_before_last", label: t('monthBeforeLast') || "Month Before Last" },
+        { value: "this_year", label: t('thisYear') || "This Year" },
+        { value: "last_year", label: t('lastYear') || "Last Year" },
+        { value: "year_before_last", label: t('yearBeforeLast') || "Year Before Last" }
+    ];
     // Derived State
     const hiddenWallets = wallets.slice(5);
 
@@ -36,7 +48,7 @@ export default function Dashboard() {
         const fetchStats = async () => {
             if (!token) return;
             try {
-                const res = await axios.get("/api/dashboard", {
+                const res = await axios.get(`/api/dashboard?period=${selectedPeriod}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setStats(res.data);
@@ -48,7 +60,8 @@ export default function Dashboard() {
         };
 
         fetchStats();
-    }, [token]);
+        fetchStats();
+    }, [token, selectedPeriod]);
 
     useEffect(() => {
         if (!token) return;
@@ -58,12 +71,7 @@ export default function Dashboard() {
         }).then(res => {
             setWallets(res.data);
             if (res.data.length > 0) {
-                if (user?.preferences?.defaultWalletId) {
-                    const found = res.data.find((w: any) => w.id === user.preferences.defaultWalletId);
-                    setSelectedWalletId(found ? found.id : res.data[0].id);
-                } else {
-                    setSelectedWalletId(res.data[0].id);
-                }
+                setSelectedWalletId(res.data[0].id);
             }
         }).catch(console.error);
     }, [user, token]);
@@ -114,6 +122,19 @@ export default function Dashboard() {
         val: Math.round((amount / totalSpending) * 100),
         amount
     })).sort((a, b) => b.val - a.val);
+
+    const progressColors = [
+        "bg-blue-500",
+        "bg-green-500",
+        "bg-orange-500",
+        "bg-pink-500",
+        "bg-purple-500",
+        "bg-teal-500",
+        "bg-indigo-500",
+        "bg-red-500",
+        "bg-yellow-500",
+        "bg-cyan-500",
+    ];
 
     return (
         <div className="flex flex-col gap-8 pb-32 h-full overflow-y-auto hide-scrollbar">
@@ -203,60 +224,108 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 flex flex-col gap-8">
                     {/* Charts / Graphs */}
-                    <div className="glass-panel p-8 rounded-[2rem] flex-1 min-h-[400px]">
+                    <div className="glass-panel p-8 rounded-[2rem] flex-1 min-h-[400px] flex flex-col">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-lg text-[var(--text-primary)]">{t('spendingByCategory')}</h3>
-                            <span className="px-3 py-1 bg-red-100 text-red-600 text-xs font-bold rounded-full">{t('highPriority')}</span>
+
+                            <div className="flex items-center gap-2">
+                                {/* Period Selector */}
+                                <div className="relative group">
+                                    <select
+                                        value={selectedPeriod}
+                                        onChange={(e) => setSelectedPeriod(e.target.value)}
+                                        className="appearance-none bg-white/50 pl-3 pr-8 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-700 outline-none focus:border-blue-500 hover:bg-white transition-colors cursor-pointer"
+                                    >
+                                        {periods.map(p => (
+                                            <option key={p.value} value={p.value}>{p.label}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
                         </div>
 
                         {spendingArray.length > 0 ? (
                             <div className="flex items-center gap-8">
-                                <div className="relative w-40 h-40 rounded-full border-[12px] border-red-500 flex items-center justify-center shrink-0">
-                                    <span className="text-2xl font-bold text-[var(--text-primary)]">{spendingArray[0].val}%</span>
-                                    <span className="absolute bottom-8 text-[10px] text-[var(--text-secondary)]">{t('topCat')}</span>
-                                </div>
+
 
                                 <div className="flex-1 flex flex-col gap-4">
-                                    {spendingArray.map(cat => (
-                                        <div key={cat.label}>
-                                            <div className="flex justify-between text-sm font-semibold mb-1">
-                                                <span>{cat.label}</span>
-                                                <span>{cat.val}%</span>
+                                    {spendingArray.map((cat, index) => {
+                                        // Find budget item for this category
+                                        const budgetItem = stats.budget?.items?.find((i: any) => i.category === cat.label);
+                                        const budgetAmount = budgetItem ? Number(budgetItem.amount) : 0;
+                                        const hasBudget = budgetAmount > 0;
+
+                                        // Calculate percentage based on budget if it exists, otherwise use total share like before (or just visual relative to max?)
+                                        // Actually existing logic used % of total expense. 
+                                        // User requested "Apply the budget...". 
+                                        // So visual length should be relative to budget if present.
+
+                                        const percentage = hasBudget
+                                            ? Math.min(100, Math.round((cat.amount / budgetAmount) * 100))
+                                            : cat.val; // Keep original % share if no budget
+
+                                        const isOverBudget = hasBudget && cat.amount > budgetAmount;
+                                        const displayColor = isOverBudget ? "bg-red-500" : progressColors[index % progressColors.length];
+
+                                        return (
+                                            <div key={cat.label}>
+                                                <div className="flex justify-between text-sm font-semibold mb-1">
+                                                    <span>{cat.label}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <span>{Number(cat.amount).toLocaleString()} ₫</span>
+                                                        {hasBudget && (
+                                                            <span className="text-gray-400 text-xs font-normal">
+                                                                / {budgetAmount.toLocaleString()} ₫
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className={clsx("w-full bg-white border p-1 rounded-full overflow-hidden", isOverBudget ? "border-red-200" : "border-gray-200")}>
+                                                    <div
+                                                        className={clsx("h-2 rounded-full transition-all duration-500", displayColor)}
+                                                        style={{
+                                                            width: `${percentage}%`,
+                                                            backgroundImage: "linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)",
+                                                            backgroundSize: "1rem 1rem"
+                                                        }}
+                                                    ></div>
+                                                </div>
                                             </div>
-                                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${cat.val}%` }}></div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </div>
                         ) : (
                             <div className="flex h-full items-center justify-center text-gray-400">{t('noSpendingData')}</div>
                         )}
                     </div>
+                </div>
 
-                    {/* Transaction List (Moved Here) */}
-                    <div>
-                        <div className="flex justify-between items-center mb-6 px-2">
-                            <h3 className="font-bold text-lg text-[var(--text-primary)]">{t('recentTransactions')}</h3>
+                {/* Transaction List (Moved Here) */}
+                <div>
+                    <TransactionList
+                        showControls={false}
+                        limit={5}
+                        title={t('recentTransactions')}
+                        headerAction={
                             <Link to="/transactions" className="text-sm font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1">
                                 {t('seeMore')} <ArrowRight size={14} />
                             </Link>
-                        </div>
-                        <TransactionList showControls={false} limit={10} />
-                    </div>
-                </div>
-
-                <div className="flex flex-col gap-6">
-                    <div className="glass-panel p-6 rounded-[2rem] bg-white">
-                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                            <Briefcase size={20} className="text-blue-500" />
-                            {t('savingsGoals')}
-                        </h3>
-                        <div className="text-xs text-gray-400">{t('noActiveGoals')}</div>
-                    </div>
+                        }
+                    />
                 </div>
             </div>
-        </div>
+
+            <div className="flex flex-col gap-6">
+                <div className="glass-panel p-6 rounded-[2rem] bg-white">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                        <Briefcase size={20} className="text-blue-500" />
+                        {t('savingsGoals')}
+                    </h3>
+                    <div className="text-xs text-gray-400">{t('noActiveGoals')}</div>
+                </div>
+            </div>
+        </div >
     );
 }

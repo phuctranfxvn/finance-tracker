@@ -3,9 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
-import { Plus, Wallet as WalletIcon, Star, PenLine, RotateCcw, Landmark, Trash2, History, CreditCard, GripVertical } from "lucide-react";
+import { Plus, Wallet as WalletIcon, PenLine, RotateCcw, Landmark, Trash2, History, CreditCard, GripVertical, ArrowRightLeft, Check } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { cn } from "../lib/utils";
+import { cn, formatNumber, parseNumber } from "../lib/utils";
 
 interface Wallet {
     id: string;
@@ -16,24 +16,20 @@ interface Wallet {
     bankName?: string;
     creditCardType?: string;
     showInQuickAdd?: boolean;
+    _count?: {
+        transactions: number;
+    };
 }
 
 import { CREDIT_CARD_TYPES, VIETNAM_BANKS } from "../lib/constants";
 
 export default function Wallets() {
-    const { user, login, token } = useAuth(); // Use Auth Context
+    const { user, token } = useAuth(); // Use Auth Context
     const navigate = useNavigate();
     const { t } = useLanguage();
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [defaultWalletId, setDefaultWalletId] = useState<string>("");
-
-    useEffect(() => {
-        if (user?.preferences?.defaultWalletId) {
-            setDefaultWalletId(user.preferences.defaultWalletId);
-        }
-    }, [user]);
 
     // New Wallet Form State
     const [newWalletName, setNewWalletName] = useState("");
@@ -136,24 +132,56 @@ export default function Wallets() {
         }
     };
 
-    const handleSetDefault = async (walletId: string) => {
-        if (!user || !token) return;
-        setDefaultWalletId(walletId);
 
-        try {
-            const updatedPreferences = { ...user.preferences, defaultWalletId: walletId };
-            const res = await axios.put("/api/auth/profile", {
-                preferences: updatedPreferences
-            });
-            login(token, res.data); // Update context
-        } catch (error) {
-            console.error("Failed to set default wallet", error);
-        }
-    };
 
     // Balance Adjustment State
     const [adjustWalletId, setAdjustWalletId] = useState<string | null>(null);
     const [adjustBalanceValue, setAdjustBalanceValue] = useState("");
+
+    // Transfer State
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [transferFromId, setTransferFromId] = useState("");
+    const [transferToId, setTransferToId] = useState("");
+    const [transferAmount, setTransferAmount] = useState("");
+    const [transferNote, setTransferNote] = useState("");
+    const [showTransferSuccess, setShowTransferSuccess] = useState(false);
+
+    const handleOpenTransfer = () => {
+        if (wallets.length >= 2) {
+            setTransferFromId("");
+            setTransferToId("");
+            setIsTransferModalOpen(true);
+        } else {
+            alert(t('needTwoWallets'));
+        }
+    };
+
+    const handleTransfer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !token) return;
+
+        try {
+            await axios.post("/api/transactions/transfer", {
+                fromWalletId: transferFromId,
+                toWalletId: transferToId,
+                amount: parseNumber(transferAmount),
+                description: transferNote
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setIsTransferModalOpen(false);
+            setTransferAmount("");
+            setTransferNote("");
+            fetchWallets();
+            // Show success message
+            setShowTransferSuccess(true);
+            setTimeout(() => setShowTransferSuccess(false), 2000);
+        } catch (error) {
+            console.error("Transfer failed", error);
+            alert("Transfer failed");
+        }
+    };
 
     const handleOpenAdjust = (wallet: Wallet) => {
         setAdjustWalletId(wallet.id);
@@ -217,7 +245,7 @@ export default function Wallets() {
         }
     };
 
-    const formatNumber = (num: number, currency: string) => {
+    const formatCurrency = (num: number, currency: string) => {
         const options: Intl.NumberFormatOptions = {
             style: 'decimal',
             minimumFractionDigits: 0,
@@ -235,6 +263,13 @@ export default function Wallets() {
                     <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('myWallets')}</h2>
                     <p className="text-sm text-[var(--text-secondary)]">{t('manageWallets')}</p>
                 </div>
+                <button
+                    onClick={handleOpenTransfer}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl font-bold shadow-lg hover:bg-orange-600 transition-colors"
+                >
+                    <ArrowRightLeft size={20} />
+                    {t('transfer')}
+                </button>
             </div>
 
             {loading ? (
@@ -298,18 +333,7 @@ export default function Wallets() {
                                                         )}
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => handleSetDefault(wallet.id)}
-                                                            className={cn(
-                                                                "p-2 rounded-full transition-colors",
-                                                                defaultWalletId === wallet.id
-                                                                    ? "bg-yellow-400 text-white shadow-lg"
-                                                                    : "hover:bg-gray-100 text-gray-300"
-                                                            )}
-                                                            title={t('setAsDefault')}
-                                                        >
-                                                            <Star size={20} fill={defaultWalletId === wallet.id ? "currentColor" : "none"} />
-                                                        </button>
+
                                                         <button
                                                             onClick={() => handleOpenEdit(wallet)}
                                                             className={cn(
@@ -337,15 +361,17 @@ export default function Wallets() {
                                                         >
                                                             <History size={18} />
                                                         </button>
-                                                        <button
-                                                            onClick={() => handleDeleteWallet(wallet.id)}
-                                                            className={cn(
-                                                                "p-2 rounded-full transition-colors hover:bg-red-50 text-gray-300 hover:text-red-500"
-                                                            )}
-                                                            title={t('deleteWallet')}
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
+                                                        {(!wallet._count?.transactions || wallet._count.transactions === 0) && (
+                                                            <button
+                                                                onClick={() => handleDeleteWallet(wallet.id)}
+                                                                className={cn(
+                                                                    "p-2 rounded-full transition-colors hover:bg-red-50 text-gray-300 hover:text-red-500"
+                                                                )}
+                                                                title={t('deleteWallet')}
+                                                            >
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -368,7 +394,7 @@ export default function Wallets() {
                                                         </div>
                                                         <div className="text-right">
                                                             <div className="text-xl font-bold tracking-tight">
-                                                                {formatNumber(Number(wallet.balance || 0), wallet.currency)}
+                                                                {formatCurrency(Number(wallet.balance || 0), wallet.currency)}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -576,6 +602,114 @@ export default function Wallets() {
                     </div>
                 </div>
             )}
+            {/* Transfer Modal */}
+            {isTransferModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsTransferModalOpen(false)}></div>
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-md z-10 shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center gap-3 mb-6 text-orange-500">
+                            <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
+                                <ArrowRightLeft size={20} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-800">{t('transferMoney')}</h3>
+                        </div>
+
+                        <form onSubmit={handleTransfer} className="flex flex-col gap-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">{t('from')}</label>
+                                    <select
+                                        className="w-full h-12 px-3 rounded-xl bg-gray-50 border-r-[12px] border-transparent outline-none focus:bg-white font-medium text-sm"
+                                        value={transferFromId}
+                                        onChange={e => setTransferFromId(e.target.value)}
+                                    >
+                                        <option value="" disabled>{t('selectWallet')}</option>
+                                        {wallets.map(w => (
+                                            <option key={w.id} value={w.id} disabled={w.id === transferToId}>
+                                                {w.name} ({formatCurrency(Number(w.balance), w.currency)})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">{t('to')}</label>
+                                    <select
+                                        className="w-full h-12 px-3 rounded-xl bg-gray-50 border-r-[12px] border-transparent outline-none focus:bg-white font-medium text-sm"
+                                        value={transferToId}
+                                        onChange={e => setTransferToId(e.target.value)}
+                                    >
+                                        <option value="" disabled>{t('selectWallet')}</option>
+                                        {wallets.map(w => (
+                                            <option key={w.id} value={w.id} disabled={w.id === transferFromId}>
+                                                {w.name} ({formatCurrency(Number(w.balance), w.currency)})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">{t('amount')}</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        className="w-full h-16 pl-4 pr-12 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-orange-500 outline-none transition-all font-bold text-3xl text-gray-800"
+                                        placeholder="0"
+                                        value={transferAmount}
+                                        onChange={e => {
+                                            const val = e.target.value.replace(/[^0-9.,]/g, '');
+                                            setTransferAmount(formatNumber(val.replace(/,/g, '')));
+                                        }}
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">{t('note')}</label>
+                                <input
+                                    type="text"
+                                    className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 outline-none transition-all font-medium"
+                                    placeholder={t('optionalNote')}
+                                    value={transferNote}
+                                    onChange={e => setTransferNote(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex gap-3 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsTransferModalOpen(false)}
+                                    className="flex-1 h-14 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!transferAmount || parseNumber(transferAmount) <= 0 || !transferFromId || !transferToId}
+                                    className="flex-1 h-14 rounded-2xl bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-200 disabled:opacity-50 disabled:shadow-none"
+                                >
+                                    {t('confirmTransfer')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Toast */}
+            <div className={cn(
+                "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] transition-all duration-300 pointer-events-none",
+                showTransferSuccess ? "opacity-100 scale-100" : "opacity-0 scale-95"
+            )}>
+                <div className="bg-black/80 backdrop-blur-md text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="font-bold">{t('transferSuccess')}</span>
+                </div>
+            </div>
         </div>
     );
 }

@@ -56,7 +56,11 @@ app.use('/api', dashboardRouter);
 app.use('/api', savingsRouter);
 app.use('/api', debtsRouter);
 app.use('/api', categoriesRouter);
+app.use('/api', categoriesRouter);
 app.use('/api', savingCategoriesRouter);
+
+import { budgetRouter } from './routes/budgets';
+app.use('/api/budgets', budgetRouter);
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Finance Tracker API is running');

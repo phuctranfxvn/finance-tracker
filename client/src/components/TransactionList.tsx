@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Search, TrendingUp, TrendingDown, Eye, EyeOff, PenLine } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Eye, EyeOff, PenLine, ArrowRightLeft } from "lucide-react";
 import { cn } from "../lib/utils";
 import TransactionModal from "./TransactionModal";
 import PasswordModal from "./PasswordModal";
@@ -10,7 +10,7 @@ import { useLanguage } from "../context/LanguageContext";
 interface Transaction {
     id: string;
     amount: number;
-    type: "INCOME" | "EXPENSE";
+    type: "INCOME" | "EXPENSE" | "TRANSFER";
     category: string;
     note?: string;
     date: string;
@@ -25,9 +25,11 @@ interface TransactionListProps {
     className?: string;
     limit?: number;
     showControls?: boolean;
+    title?: string;
+    headerAction?: React.ReactNode;
 }
 
-export default function TransactionList({ className, limit = 20, showControls = true }: TransactionListProps) {
+export default function TransactionList({ className, limit = 20, showControls = true, title, headerAction }: TransactionListProps) {
     const { user } = useAuth();
     const { t } = useLanguage();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -109,18 +111,20 @@ export default function TransactionList({ className, limit = 20, showControls = 
             <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-center gap-4">
                     <div className="min-w-0">
-                        <h2 className="text-xl font-bold text-[var(--text-primary)] truncate">{t('transactions')}</h2>
+                        <h2 className="text-xl font-bold text-[var(--text-primary)] truncate">{title || t('transactions')}</h2>
                         <p className="text-sm text-[var(--text-secondary)] truncate">{t('trackActivity')}</p>
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0">
-                        <button
-                            onClick={togglePrivacy}
-                            className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
-                            title={showPrivate ? t('hidePrivate') : t('showPrivate')}
-                        >
-                            {showPrivate ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
+                        {headerAction ? headerAction : (
+                            <button
+                                onClick={togglePrivacy}
+                                className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
+                                title={showPrivate ? t('hidePrivate') : t('showPrivate')}
+                            >
+                                {showPrivate ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -157,9 +161,13 @@ export default function TransactionList({ className, limit = 20, showControls = 
                                 <div key={tx.id} className="relative flex items-start gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-gray-50 rounded-2xl transition-colors border border-transparent hover:border-gray-100 group">
                                     <div className={cn(
                                         "w-12 h-12 rounded-full flex items-center justify-center shrink-0 mt-1",
-                                        tx.type === 'INCOME' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                                        tx.type === 'INCOME' ? "bg-green-100 text-green-600" :
+                                            tx.type === 'TRANSFER' ? (
+                                                tx.category === 'Transfer In' ? "bg-teal-100 text-teal-600" : "bg-rose-100 text-rose-600"
+                                            ) : "bg-red-100 text-red-600"
                                     )}>
-                                        {tx.type === 'INCOME' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                        {tx.type === 'INCOME' ? <TrendingUp size={20} /> :
+                                            tx.type === 'TRANSFER' ? <ArrowRightLeft size={20} /> : <TrendingDown size={20} />}
                                     </div>
 
                                     <div className="flex-1 min-w-0 pt-0.5 pr-8 sm:pr-0">
@@ -174,11 +182,14 @@ export default function TransactionList({ className, limit = 20, showControls = 
 
                                     <div className={cn(
                                         "text-lg font-bold flex items-center justify-end whitespace-nowrap pt-0.5 shrink-0",
-                                        tx.type === 'INCOME' ? "text-green-600" : "text-red-600"
+                                        tx.type === 'INCOME' ? "text-green-600" :
+                                            tx.type === 'TRANSFER' ? (
+                                                tx.category === 'Transfer In' ? "text-teal-600" : "text-rose-600"
+                                            ) : "text-red-600"
                                     )}>
                                         {isMasked ? "******" : (
                                             <>
-                                                {tx.type === 'INCOME' ? '+' : '-'}{Number(tx.amount).toLocaleString()}
+                                                {tx.type === 'INCOME' || (tx.type === 'TRANSFER' && tx.category === 'Transfer In') ? '+' : '-'}{Number(tx.amount).toLocaleString()}
                                             </>
                                         )}
                                     </div>

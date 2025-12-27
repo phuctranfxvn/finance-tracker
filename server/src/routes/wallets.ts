@@ -14,6 +14,11 @@ router.get('/wallets', async (req, res) => {
         const wallets = await prisma.account.findMany({
             where: { userId },
             orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+            include: {
+                _count: {
+                    select: { transactions: true }
+                }
+            }
         });
         res.json(wallets);
     } catch (error) {

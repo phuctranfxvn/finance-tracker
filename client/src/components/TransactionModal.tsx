@@ -9,7 +9,7 @@ interface TransactionModalProps {
     transactionToEdit?: {
         id: string;
         amount: number;
-        type: "INCOME" | "EXPENSE";
+        type: "INCOME" | "EXPENSE" | "TRANSFER";
         category: string;
         accountId: string;
         note?: string;
@@ -19,7 +19,7 @@ interface TransactionModalProps {
 }
 
 export default function TransactionModal({ isOpen, onClose, transactionToEdit }: TransactionModalProps) {
-    const [type, setType] = useState<"EXPENSE" | "INCOME">("EXPENSE");
+    const [type, setType] = useState<"EXPENSE" | "INCOME" | "TRANSFER">("EXPENSE");
     const [wallets, setWallets] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
 
@@ -80,7 +80,7 @@ export default function TransactionModal({ isOpen, onClose, transactionToEdit }:
         try {
             const res = await axios.get("/api/wallets");
             setWallets(res.data);
-            if (res.data.length > 0 && !accountId) {
+            if (res.data.length > 0 && !accountId && !transactionToEdit) {
                 setAccountId(res.data[0].id);
             }
         } catch (error) {
@@ -158,20 +158,26 @@ export default function TransactionModal({ isOpen, onClose, transactionToEdit }:
                 <div className="flex-1 overflow-y-auto p-6">
                     {/* Toggle Type */}
                     <div className="flex bg-gray-100 p-1 rounded-2xl mb-8">
-                        {["EXPENSE", "INCOME"].map((t) => (
-                            <button
-                                key={t}
-                                onClick={() => setType(t as any)}
-                                className={cn(
-                                    "flex-1 py-3 text-sm font-bold rounded-xl transition-all",
-                                    type === t
-                                        ? "bg-white text-[var(--primary)] shadow-md"
-                                        : "text-gray-400 hover:text-gray-600"
-                                )}
-                            >
-                                {t}
-                            </button>
-                        ))}
+                        {type === 'TRANSFER' ? (
+                            <div className="w-full py-3 text-sm font-bold text-center bg-blue-100 text-blue-600 rounded-xl">
+                                Transfer Transaction
+                            </div>
+                        ) : (
+                            ["EXPENSE", "INCOME"].map((t) => (
+                                <button
+                                    key={t}
+                                    onClick={() => setType(t as any)}
+                                    className={cn(
+                                        "flex-1 py-3 text-sm font-bold rounded-xl transition-all",
+                                        type === t
+                                            ? "bg-white text-[var(--primary)] shadow-md"
+                                            : "text-gray-400 hover:text-gray-600"
+                                    )}
+                                >
+                                    {t}
+                                </button>
+                            ))
+                        )}
                     </div>
 
                     <form id="tx-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -236,56 +242,63 @@ export default function TransactionModal({ isOpen, onClose, transactionToEdit }:
                         )}
 
                         {/* Wallet Selection */}
-                        <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Wallet / Account</label>
-                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                                {wallets.map(w => (
-                                    <button
-                                        type="button"
-                                        key={w.id}
-                                        onClick={() => setAccountId(w.id)}
-                                        className={cn(
-                                            "flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap border transition-all",
-                                            accountId === w.id
-                                                ? "bg-black text-white border-black shadow-lg"
-                                                : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
-                                        )}
-                                    >
-                                        <Wallet size={16} />
-                                        <span className="font-semibold text-sm">{w.name}</span>
-                                    </button>
-                                ))}
+                        {/* Wallet Selection */}
+                        {type !== 'TRANSFER' && (
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Wallet / Account</label>
+                                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                    {wallets.map(w => (
+                                        <button
+                                            type="button"
+                                            key={w.id}
+                                            onClick={() => setAccountId(w.id)}
+                                            className={cn(
+                                                "flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap border transition-all",
+                                                accountId === w.id
+                                                    ? "bg-black text-white border-black shadow-lg"
+                                                    : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                                            )}
+                                        >
+                                            <Wallet size={16} />
+                                            <span className="font-semibold text-sm">{w.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Category</label>
-                                <select
-                                    className="w-full h-12 px-4 rounded-xl bg-gray-50 border-r-[16px] border-transparent outline-none focus:bg-white font-medium"
-                                    value={category}
-                                    onChange={e => setCategory(e.target.value)}
-                                    required
-                                >
-                                    <option value="" disabled>Select...</option>
-                                    {categories.filter(c => c.type === type).map(c => (
-                                        <option key={c.id} value={c.name}>{c.icon} {c.name}</option>
-                                    ))}
-                                    {categories.filter(c => c.type === type).length === 0 && (
-                                        <option value="" disabled>No categories found</option>
-                                    )}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Date & Time</label>
-                                <input
-                                    type="datetime-local"
-                                    className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-transparent outline-none focus:bg-white font-medium"
-                                    value={date}
-                                    onChange={e => setDate(e.target.value)}
-                                    required
-                                />
-                            </div>
+                            {type !== 'TRANSFER' && (
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Category</label>
+                                    <select
+                                        className="w-full h-12 px-4 rounded-xl bg-gray-50 border-r-[16px] border-transparent outline-none focus:bg-white font-medium"
+                                        value={category}
+                                        onChange={e => setCategory(e.target.value)}
+                                        required={type !== 'TRANSFER'}
+                                    >
+                                        <option value="" disabled>Select...</option>
+                                        {categories.filter(c => c.type === type).map(c => (
+                                            <option key={c.id} value={c.name}>{c.icon} {c.name}</option>
+                                        ))}
+                                        {categories.filter(c => c.type === type).length === 0 && (
+                                            <option value="" disabled>No categories found</option>
+                                        )}
+                                    </select>
+                                </div>
+                            )}
+                            {type !== 'TRANSFER' && (
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Date & Time</label>
+                                    <input
+                                        type="datetime-local"
+                                        className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-transparent outline-none focus:bg-white font-medium"
+                                        value={date}
+                                        onChange={e => setDate(e.target.value)}
+                                        required={type !== 'TRANSFER'}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -307,7 +320,7 @@ export default function TransactionModal({ isOpen, onClose, transactionToEdit }:
                         form="tx-form"
                         className="w-full h-14 rounded-2xl bg-[var(--primary)] text-white font-bold text-lg shadow-xl shadow-orange-200 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
-                        <span>{transactionToEdit ? 'Update' : 'Confirm'} {type === 'INCOME' ? 'Income' : 'Expense'}</span>
+                        <span>{transactionToEdit ? 'Update' : 'Confirm'} {type === 'INCOME' ? 'Income' : type === 'TRANSFER' ? 'Transfer' : 'Expense'}</span>
                         <ArrowRight size={20} />
                     </button>
                 </div>

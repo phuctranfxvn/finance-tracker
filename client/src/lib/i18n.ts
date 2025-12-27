@@ -34,6 +34,12 @@ export const translations = {
         noActiveGoals: "No active goals",
         recentTransactions: "Recent Transactions",
         noSpendingData: "No spending data available",
+        thisMonth: "This Month",
+        lastMonth: "Last Month",
+        monthBeforeLast: "Month Before Last",
+        thisYear: "This Year",
+        lastYear: "Last Year",
+        yearBeforeLast: "Year Before Last",
 
         // Settings
         language: "Language",
@@ -51,6 +57,23 @@ export const translations = {
         passkeys: "Passkeys",
         passkeyDesc: "Use your fingerprint or face ID to log in securely.",
         addPasskey: "Add Passkey",
+
+        // Budgets
+        monthlyBudgets: "Monthly Budgets",
+        addBudget: "Set Budget",
+        createBudget: "Create Budget",
+        editBudget: "Edit Budget",
+        noBudgets: "No budgets set yet. Click 'Set Budget' to start planning.",
+        month: "Month",
+        year: "Year",
+        category: "Category",
+        budget: "Budget",
+        total: "Total",
+        saveBudget: "Save Budget",
+        addCategory: "Add Category",
+        deleteBudget: "Delete Budget",
+
+
         passkeyCreated: "Created",
         noPasskeys: "No passkeys registered yet.",
         remove: "Remove",
@@ -84,6 +107,15 @@ export const translations = {
         cannotDeleteWallet: "Cannot delete wallet with existing transactions. Please delete all transactions associated with this wallet first.",
         showInQuickAdd: "Show in Quick Add",
         quickAddDescription: "Show this wallet in the Quick Add list on Dashboard.",
+        needTwoWallets: "You need at least 2 wallets to transfer money.",
+        transfer: "Transfer",
+        transferMoney: "Transfer Money",
+        from: "From",
+        to: "To",
+        note: "Note",
+        optionalNote: "Optional note",
+        confirmTransfer: "Confirm Transfer",
+        transferSuccess: "Transfer successful!",
 
         // Transactions
         trackActivity: "Track your financial activity",
@@ -215,6 +247,12 @@ export const translations = {
         noActiveGoals: "Chưa có mục tiêu",
         recentTransactions: "Giao dịch gần đây",
         noSpendingData: "Chưa có dữ liệu chi tiêu",
+        thisMonth: "Tháng Này",
+        lastMonth: "Tháng Trước",
+        monthBeforeLast: "Tháng Kia",
+        thisYear: "Năm Nay",
+        lastYear: "Năm Ngoái",
+        yearBeforeLast: "Năm Kia",
 
         // Settings
         language: "Ngôn ngữ",
@@ -232,6 +270,21 @@ export const translations = {
         passkeys: "Passkeys",
         passkeyDesc: "Sử dụng vân tay hoặc Face ID để đăng nhập an toàn.",
         addPasskey: "Thêm Key",
+
+        // Budgets
+        monthlyBudgets: "Ngân Sách Hàng Tháng",
+        addBudget: "Đặt Ngân Sách",
+        createBudget: "Tạo Ngân Sách",
+        editBudget: "Sửa Ngân Sách",
+        noBudgets: "Chưa có ngân sách nào. Hãy đặt ngân sách để quản lý chi tiêu.",
+        month: "Tháng",
+        year: "Năm",
+        category: "Danh mục",
+        budget: "Ngân sách",
+        total: "Tổng cộng",
+        saveBudget: "Lưu Ngân Sách",
+        addCategory: "Thêm Danh mục",
+        deleteBudget: "Xóa Ngân Sách",
         passkeyCreated: "Đã tạo",
         noPasskeys: "Chưa có mã khóa nào.",
         remove: "Xóa",
@@ -265,6 +318,15 @@ export const translations = {
         cannotDeleteWallet: "Không thể xóa ví đã có giao dịch. Vui lòng xóa hết giao dịch liên quan trước.",
         showInQuickAdd: "Hiển thị trong Thêm Nhanh",
         quickAddDescription: "Cho phép ví này xuất hiện trong phần thêm nhanh ở Trang chủ.",
+        needTwoWallets: "Bạn cần ít nhất 2 ví để thực hiện chuyển tiền.",
+        transfer: "Chuyển tiền",
+        transferMoney: "Chuyển tiền",
+        from: "Từ",
+        to: "Đến",
+        note: "Ghi chú",
+        optionalNote: "Ghi chú tùy chọn",
+        confirmTransfer: "Xác nhận chuyển",
+        transferSuccess: "Chuyển tiền thành công!",
 
         // Transactions
         trackActivity: "Theo dõi hoạt động tài chính",

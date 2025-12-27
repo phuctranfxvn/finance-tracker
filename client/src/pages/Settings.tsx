@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import axios from "axios";
 import CategoryManager from "../components/CategoryManager";
+import BudgetManager from "../components/BudgetManager";
 import { startRegistration } from '@simplewebauthn/browser';
 
 
@@ -381,6 +382,12 @@ export default function Settings() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Budget Manager */}
+            <hr className="border-gray-200" />
+            <div>
+                <BudgetManager />
             </div>
 
             {/* Category Manager */}
