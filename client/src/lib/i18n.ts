@@ -155,7 +155,6 @@ export const translations = {
         savedSuccess: "Saved successfully!",
         unsettledSuccess: "Unsettled successfully!",
         failed: "Operation failed",
-        category: "Category",
         uncategorized: "Uncategorized",
 
         // Categories (Defaults)
@@ -366,7 +365,6 @@ export const translations = {
         savedSuccess: "Lưu thành công!",
         unsettledSuccess: "Hoàn tác thành công!",
         failed: "Thao tác thất bại",
-        category: "Danh mục",
         uncategorized: "Chưa phân loại",
 
         // Categories (Defaults)

@@ -14,8 +14,10 @@ export default function Settings() {
     const [quickAmounts, setQuickAmounts] = useState<number[]>([]);
     const [newAmount, setNewAmount] = useState("");
     const [saving, setSaving] = useState(false);
-    const [wallets, setWallets] = useState<any[]>([]);
-    const [defaultWalletId, setDefaultWalletId] = useState<string>("");
+
+    // wait I should be careful.
+    // removing line 17: const [wallets, setWallets] = useState<any[]>([]);
+    // removing line 18: const [defaultWalletId, setDefaultWalletId] = useState<string>("");
     const [requirePassword, setRequirePassword] = useState(false);
 
     const [showVerifyModal, setShowVerifyModal] = useState(false);
@@ -38,9 +40,7 @@ export default function Settings() {
             // Default presets if none found
             setQuickAmounts([50000, 100000, 200000, 500000]);
         }
-        if (user?.preferences?.defaultWalletId) {
-            setDefaultWalletId(user.preferences.defaultWalletId);
-        }
+
         // Default to false if not set
         setRequirePassword(!!user?.preferences?.requirePasswordForIncome);
 
@@ -74,27 +74,14 @@ export default function Settings() {
         }
     };
 
-    useEffect(() => {
-        const fetchWallets = async () => {
-            try {
-                const res = await axios.get("/api/wallets");
-                setWallets(res.data);
-            } catch (error) {
-                console.error("Failed to fetch wallets", error);
-            }
-        };
-        fetchWallets();
-    }, []);
+
 
     const saveAmounts = async (amounts: number[]) => {
         setQuickAmounts(amounts);
         await savePreferences({ quick_amounts: amounts });
     };
 
-    const saveDefaultWallet = async (walletId: string) => {
-        setDefaultWalletId(walletId);
-        await savePreferences({ defaultWalletId: walletId });
-    };
+
 
     const savePreferences = async (newPrefs: any) => {
         if (!user || !token) return;
@@ -287,35 +274,7 @@ export default function Settings() {
                 </div>
             </div>
 
-            {/* Default Wallet Config */}
-            <div className="bg-white p-6 rounded-[2rem] shadow-sm">
-                <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-lg font-bold flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">💳</span>
-                        {t('defaultQuickWallet')}
-                    </h2>
-                </div>
-                <p className="text-sm text-gray-500 mb-6">{t('selectDefaultWallet')}</p>
 
-                <div className="flex flex-wrap gap-3">
-                    {wallets.map(wallet => (
-                        <button
-                            key={wallet.id}
-                            onClick={() => saveDefaultWallet(wallet.id)}
-                            className={`px-4 py-3 rounded-xl font-bold border-2 transition-all text-sm flex flex-col items-start gap-1 min-w-[120px] ${defaultWalletId === wallet.id
-                                ? "border-blue-500 bg-blue-50 text-blue-700 shadow-md"
-                                : "border-gray-100 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50"
-                                }`}
-                        >
-                            <span>{wallet.name}</span>
-                            <span className="text-[10px] opacity-70 font-normal">
-                                {Number(wallet.balance).toLocaleString()} {wallet.currency}
-                            </span>
-                        </button>
-                    ))}
-                    {wallets.length === 0 && <p className="text-gray-400 italic">{t('noWallets')}</p>}
-                </div>
-            </div>
 
             {/* Privacy & Security */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm">

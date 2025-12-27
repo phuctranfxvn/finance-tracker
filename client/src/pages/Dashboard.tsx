@@ -186,44 +186,48 @@ export default function Dashboard() {
                 </div>
             )}
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {statCards.map((stat, index) => (
-                    <div key={index} className={clsx("p-6 rounded-[2rem] flex flex-col justify-between h-40 card-hover glass-panel relative overflow-hidden", stat.bg)}>
-                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>
+            {/* Unified Dashboard Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
 
-                        <div className="flex justify-between items-start z-10">
-                            <div>
-                                <div className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
-                                    {stat.label}
-                                    {stat.isPrivacy && (
-                                        <button
-                                            onClick={toggleIncomeVisibility}
-                                            className="text-gray-400 hover:text-black transition-colors"
-                                        >
-                                            {showIncome ? <EyeOff size={14} /> : <Eye size={14} />}
-                                        </button>
-                                    )}
+                {/* 1. Stats Grid - Mobile Order 2, Desktop Order 1 (Col Span 3) */}
+                <div className="contents lg:block lg:col-span-3 order-2 lg:order-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full order-2 lg:order-1">
+                        {statCards.map((stat, index) => (
+                            <div key={index} className={clsx("p-6 rounded-[2rem] flex flex-col justify-between h-40 card-hover glass-panel relative overflow-hidden", stat.bg)}>
+                                <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>
+
+                                <div className="flex justify-between items-start z-10">
+                                    <div>
+                                        <div className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
+                                            {stat.label}
+                                            {stat.isPrivacy && (
+                                                <button
+                                                    onClick={toggleIncomeVisibility}
+                                                    className="text-gray-400 hover:text-black transition-colors"
+                                                >
+                                                    {showIncome ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="text-2xl font-bold mt-1 text-[var(--text-primary)]">{stat.value}</div>
+                                    </div>
+                                    <div className={clsx("w-10 h-10 rounded-full flex items-center justify-center", stat.color)}>
+                                        <stat.icon size={20} />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold mt-1 text-[var(--text-primary)]">{stat.value}</div>
-                            </div>
-                            <div className={clsx("w-10 h-10 rounded-full flex items-center justify-center", stat.color)}>
-                                <stat.icon size={20} />
-                            </div>
-                        </div>
 
-                        <div className="z-10 mt-auto">
-                            <div className="w-full h-1 bg-black/5 rounded-full overflow-hidden">
-                                <div className="h-full bg-black/10 w-2/3 rounded-full"></div>
+                                <div className="z-10 mt-auto">
+                                    <div className="w-full h-1 bg-black/5 rounded-full overflow-hidden">
+                                        <div className="h-full bg-black/10 w-2/3 rounded-full"></div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 flex flex-col gap-8">
-                    {/* Charts / Graphs */}
+                {/* 2. Spending By Category - Mobile Order 1, Desktop Order 2 (Col Span 2) */}
+                <div className="lg:col-span-2 order-1 lg:order-2">
                     <div className="glass-panel p-8 rounded-[2rem] flex-1 min-h-[400px] flex flex-col">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-lg text-[var(--text-primary)]">{t('spendingByCategory')}</h3>
@@ -302,8 +306,8 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Transaction List (Moved Here) */}
-                <div>
+                {/* 3. Transaction List - Mobile Order 3, Desktop Order 3 (Col Span 1) */}
+                <div className="order-3 lg:order-3">
                     <TransactionList
                         showControls={false}
                         limit={5}
